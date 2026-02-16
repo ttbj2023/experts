@@ -55,6 +55,7 @@ echo "解析后端: $BACKEND"
 OUTPUT_JSON="/tmp/mineru_response_$(date +%s).json"
 
 # 调用MinerU API（适配实际端点/参数）
+# 注意：return_images=true 是提取图片的关键参数
 HTTP_CODE=$(curl -X POST \
     "$MINERU_API_URL/file_parse" \
     -F "files=@$INPUT_FILE" \
@@ -64,12 +65,15 @@ HTTP_CODE=$(curl -X POST \
     -F "parse_method=auto" \
     -F "formula_enable=true" \
     -F "table_enable=true" \
-    -o "$OUTPUT_JSON" \
+    -F "return_md=true" \
+    -F "return_images=true" \
+    -F "return_content_list=true" \
     -w "%{http_code}" \
     --silent \
     --show-error \
     --connect-timeout 30 \
-    --max-time 300)
+    --max-time 300 \
+    -o "$OUTPUT_JSON")
 
 # 检查HTTP状态码
 if [ "$HTTP_CODE" -ne 200 ]; then
@@ -80,6 +84,42 @@ if [ "$HTTP_CODE" -ne 200 ]; then
     fi
     exit 1
 fi
+
+# 提取并保存base64编码的图片
+echo "正在提取图片..."
+
+# 获取结果键名（文件名）
+RESULT_KEY=$(jq -r '.results | keys[0]' "$OUTPUT_JSON")
+
+# 创建输出目录的images子目录
+mkdir -p "$OUTPUT_DIR/$RESULT_KEY/images"
+
+# 提取图片数量
+IMAGE_COUNT=$(jq ".results[\"$RESULT_KEY\"].images | length" "$OUTPUT_JSON")
+echo "检测到 $IMAGE_COUNT 张图片"
+
+# 提取并保存所有图片
+jq -r ".results[\"$RESULT_KEY\"].images | to_entries | .[] | \"\(.key)|\(.value)\"" "$OUTPUT_JSON" | while IFS='|' read -r key value; do
+    # 跳过空值
+    [ -z "$value" ] && continue
+
+    # 去掉data:image/jpeg;base64, 前缀
+    base64_data=$(echo "$value" | sed 's/^data:image\/[a-z]*;base64,//')
+
+    # 输出文件路径
+    output_file="$OUTPUT_DIR/$RESULT_KEY/images/$key"
+
+    # 解码并保存
+    echo "$base64_data" | base64 -d > "$output_file"
+
+    if [ -f "$output_file" ]; then
+        size=$(stat -c%s "$output_file" 2>/dev/null || stat -f%z "$output_file" 2>/dev/null)
+        echo "  ✓ $key ($(numfmt --to=iec-i --suffix=B $size 2>/dev/null || echo "${size} bytes"))"
+    fi
+done
+
+echo "图片提取完成！保存位置: $OUTPUT_DIR/$RESULT_KEY/images"
+echo ""
 
 # 输出目录路径（包含解析结果）
 echo "$OUTPUT_DIR"

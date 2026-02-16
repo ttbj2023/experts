@@ -1,0 +1,284 @@
+# 元素类型映射表
+# 定义PDF→Word兼容HTML转换中所有支持的元素类型
+# 统一画框、识别、填空三个环节的元素类型标识
+
+# 版面元素类型清单
+element_types:
+  # 标题类（映射为Word内置标题样式，支持目录生成）
+  title_h1:
+    display_name: "一级标题"
+    html_tag: "h1"
+    description: "文档最高级别标题，映射为Word标题1样式"
+    word_style: "标题 1"
+    properties:
+      level: 1
+      bold: true
+      font_size: "18pt"
+
+  title_h2:
+    display_name: "二级标题"
+    html_tag: "h2"
+    description: "次级标题，映射为Word标题2样式"
+    word_style: "标题 2"
+    properties:
+      level: 2
+      bold: true
+      font_size: "16pt"
+
+  title_h3:
+    display_name: "三级标题"
+    html_tag: "h3"
+    description: "三级标题，映射为Word标题3样式"
+    word_style: "标题 3"
+    properties:
+      level: 3
+      bold: true
+      font_size: "14pt"
+
+  title_h4:
+    display_name: "四级标题"
+    html_tag: "h4"
+    description: "四级标题，映射为Word标题4样式"
+    word_style: "标题 4"
+    properties:
+      level: 4
+      bold: true
+      font_size: "12pt"
+
+  title_h5:
+    display_name: "五级标题"
+    html_tag: "h5"
+    description: "五级标题，映射为Word标题5样式"
+    word_style: "标题 5"
+    properties:
+      level: 5
+      bold: true
+      font_size: "10.5pt"
+
+  title_h6:
+    display_name: "六级标题"
+    html_tag: "h6"
+    description: "最低级别标题，映射为Word标题6样式"
+    word_style: "标题 6"
+    properties:
+      level: 6
+      bold: true
+      font_size: "10.5pt"
+
+  # 文本类
+  paragraph:
+    display_name: "正文段落"
+    html_tag: "p"
+    description: "普通正文段落，映射为Word正文样式"
+    word_style: "正文"
+    properties:
+      text_indent: "2em"
+      line_height: 1.6
+      font_size: "10.5pt"
+
+  # 列表类（映射为Word原生可编辑列表）
+  ordered_list:
+    display_name: "有序列表"
+    html_tag: "ol"
+    description: "数字编号列表，映射为Word有序列表"
+    word_style: "正文"
+    properties:
+      list_type: "decimal"
+      support_nested: true
+      max_nesting_level: 3
+
+  unordered_list:
+    display_name: "无序列表"
+    html_tag: "ul"
+    description: "项目符号列表，映射为Word无序列表"
+    word_style: "正文"
+    properties:
+      list_type: "disc"
+      support_nested: true
+      max_nesting_level: 3
+
+  # 公式类（映射为Word公式编辑器格式）
+  formula_inline:
+    display_name: "行内公式"
+    html_tag: "script"
+    description: "嵌入段落中的数学公式，用<script type='math/tex'>标签"
+    word_style: "Cambria Math"
+    properties:
+      mode: "inline"
+      latex_format: true
+      editable: true
+      output_format: "LaTeX"
+
+  formula_block:
+    display_name: "块级公式"
+    html_tag: "script"
+    description: "独立成段的数学公式，居中显示，用<script type='math/tex; mode=display'>标签"
+    word_style: "Cambria Math"
+    properties:
+      mode: "display"
+      latex_format: true
+      editable: true
+      output_format: "LaTeX"
+      align: "center"
+      break_inside: "avoid"
+
+  # 表格类（映射为Word原生可编辑表格）
+  table:
+    display_name: "表格"
+    html_tag: "table"
+    description: "数据表格，支持合并单元格，映射为Word原生表格"
+    word_style: "表格"
+    properties:
+      border_collapse: true
+      support_merge: true
+      support_header: true
+      native_attributes: ["border", "cellpadding", "cellspacing", "width", "align", "valign"]
+
+  # 图片类（base64内嵌）
+  image:
+    display_name: "插图/图表"
+    html_tag: "img"
+    description: "插入的图片或图表，必须base64内嵌"
+    word_style: "图片"
+    properties:
+      embed_type: "base64"
+      supported_formats: ["PNG", "JPEG", "JPG"]
+      align: "center"
+      break_inside: "avoid"
+
+  # 页面元素类
+  header:
+    display_name: "页眉"
+    html_tag: "p"
+    description: "页面顶部页眉，通常包含章节名称、页码等"
+    word_style: "页眉"
+    properties:
+      font_size: "9pt"
+      align: "center"
+      text_color: "#666"
+      skip_in_content: true  # 标记为需要过滤的内容
+
+  footer:
+    display_name: "页脚"
+    html_tag: "p"
+    description: "页面底部页脚，通常包含页码、版权信息等"
+    word_style: "页脚"
+    properties:
+      font_size: "9pt"
+      align: "center"
+      text_color: "#666"
+      skip_in_content: true  # 标记为需要过滤的内容
+
+  caption:
+    display_name: "图注/表注"
+    html_tag: "p"
+    description: "图片或表格的标题说明"
+    word_style: "题注"
+    properties:
+      font_size: "9.5pt"
+      align: "center"
+      bold: false
+
+# 元素类型分组（便于批量处理）
+type_groups:
+  text_elements:
+    - title_h1
+    - title_h2
+    - title_h3
+    - title_h4
+    - title_h5
+    - title_h6
+    - paragraph
+
+  list_elements:
+    - ordered_list
+    - unordered_list
+
+  formula_elements:
+    - formula_inline
+    - formula_block
+
+  media_elements:
+    - table
+    - image
+
+  page_elements:
+    - header
+    - footer
+    - caption
+
+# 需要特殊处理的元素（防拆分、跨栏等）
+special_handling:
+  break_inside_avoid:
+    - title_h1
+    - title_h2
+    - title_h3
+    - formula_block
+    - image
+    - table
+    - caption
+
+  cross_column_elements:
+    - title_h1
+    - title_h2
+
+# 双栏布局相关配置
+two_column_layout:
+  main_content_types:
+    - title_h3
+    - title_h4
+    - title_h5
+    - title_h6
+    - paragraph
+    - ordered_list
+    - unordered_list
+    - formula_block
+    - image
+    - table
+
+  sidebar_content_types:
+    - paragraph  # 注释性段落
+    - unordered_list  # 要点列表
+
+# 视觉模型识别时的提示词映射
+model_prompts:
+  layout_analysis:
+    instruction: "分析版面结构并输出元素框"
+    output_format: "JSON with bbox, type, read_order"
+
+  content_extraction:
+    instruction: "提取元素内容并结构化"
+    output_format: "JSON with content, latex_code, or table_data"
+
+# 验证规则（用于校验模型输出）
+validation_rules:
+  required_fields:
+    - element_id
+    - type
+    - bbox
+    - read_order
+
+  allowed_types:
+    - title_h1
+    - title_h2
+    - title_h3
+    - title_h4
+    - title_h5
+    - title_h6
+    - paragraph
+    - ordered_list
+    - unordered_list
+    - formula_inline
+    - formula_block
+    - table
+    - image
+    - header
+    - footer
+    - caption
+
+  bbox_format: [x1, y1, x2, y2]  # 像素坐标
+
+  read_order:
+    type: integer
+    min_value: 1
+    must_be_consecutive: true

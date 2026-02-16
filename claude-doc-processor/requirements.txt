@@ -1,0 +1,19 @@
+# Claude Doc Processor - Python依赖
+
+# 核心依赖
+PyYAML>=6.0
+requests>=2.31.0
+Pillow>=10.0.0
+python-docx>=1.1.0
+
+# PDF处理
+PyMuPDF>=1.23.0  # fitz
+
+# OpenCV (图片检测)
+opencv-python>=4.8.0
+
+# LibreOffice (系统依赖)
+# 需要系统安装: apt-get install libreoffice
+
+# 可选依赖
+# numpy (OpenCV依赖)

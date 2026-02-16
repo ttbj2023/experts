@@ -49,6 +49,7 @@ docs/_build/
 site/
 
 # Package specific
+data/
 src/assistant_experts/*/data/
 **/output.md
 **/test_*.md

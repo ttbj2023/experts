@@ -1,0 +1,202 @@
+# Claude Doc Processor - 默认配置文件
+
+# 模型配置
+models:
+  # GLM-4.6V-Flash 配置
+  glm:
+    api_url: "http://192.168.100.110:9999"
+    model: "zai-org/glm-4.6v-flash"
+    max_tokens: 8192
+    timeout: 60
+    temperature: 0.3
+
+  # DeepSeek 配置
+  deepseek:
+    api_key: "${DEEPSEEK_API_KEY}"  # 从环境变量读取
+    model: "deepseek-chat"
+    timeout: 120
+    temperature: 0.1
+    max_tokens: 4000
+
+# 文档类型检测配置（新增v2.0）
+detection:
+  # PDF检测
+  pdf:
+    text_threshold: 1000  # 判断为数字版PDF的最小文本字符数
+    min_text_ratio: 0.1  # 最小文本密度（字符/像素）
+
+  # DOCX检测
+  docx:
+    max_images: 0  # 简单文档的最大图片数量
+    complex_elements: ["equation", "smartart", "chart"]  # 复杂元素类型
+
+  # 回退策略
+  fallback_on_error: true  # 检测失败时回退到完整流程
+
+# 快速文本提取配置（新增v2.0）
+fast_extraction:
+  # PDF快速提取
+  pdf:
+    preserve_layout: true  # 尝试保留布局
+    extract_images: true  # 提取嵌入图片
+
+  # DOCX快速提取
+  docx:
+    preserve_tables: true  # 保留表格结构
+    preserve_lists: true  # 保留列表结构
+
+# 处理配置
+processing:
+  # PDF 处理配置
+  pdf:
+    dpi: 200
+    max_pages: null  # null表示处理所有页
+    opencv_min_area: 0.02  # OpenCV图片检测最小面积比例
+    opencv_padding: 10  # OpenCV边界框扩展像素
+    enable_formatting: false  # 是否启用DeepSeek排版优化
+
+  # DOCX 处理配置
+  docx:
+    libreoffice_timeout: 60
+    image_max_size: 1280  # GLM描述图片的最大尺寸
+    document_chunk_size: 64000  # 文档分段字符数阈值
+    image_quality: 85  # JPEG压缩质量
+    enable_code_block_cleanup: true  # 启用代码块清理
+    enable_separator_cleanup: true  # 启用分隔符清理
+    enable_duplicate_detection: true  # 启用重复匹配检测
+
+# 输出配置
+output:
+  default_dir: "output"
+  save_intermediate: true  # 保存中间结果（带占位符的md、图片描述等）
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_format: "%(asctime)s - %(levelname)s - %(message)s"
+
+# 图片提取配置
+image_extraction:
+  method: "auto"  # auto, opencv, docx
+  formats: ["png", "jpg", "jpeg"]  # 保存的图片格式
+  extract_all: true  # 是否提取所有图片（包括装饰性图标）
+  min_width: 50  # 最小图片宽度（像素）
+  min_height: 50  # 最小图片高度（像素）
+
+# OCR提示词模板
+prompts:
+  ocr: |
+    你是一个专业的OCR识别系统。请将这个PDF页面转换为Markdown格式。
+
+    ## 输出格式要求
+    请使用以下格式输出：
+    ```markdown
+    [你的Markdown内容]
+    ```
+
+    ## 转换规则
+
+    ### 文字内容
+    - 标题：使用 # ## ### #### 表示层级
+    - 段落：直接输出文字，空行分隔
+    - 列表：使用 - 或 1.
+    - 表格：使用 Markdown表格语法
+    - 公式：行内用 $x^2$，独立用 $$\\frac{a}{b}$$
+
+    ### 图片处理
+    遇到图片时使用：
+    <!-- IMAGE_PLACEHOLDER type: 图片类型 description: 详细描述 -->
+
+    ### 页眉页脚处理 ⚠️ 重要
+    - **不要识别页眉页脚**：忽略页面顶部和底部的重复信息
+    - **只识别正文内容**：专注于页面中间的主要内容区域
+
+  image_description: |
+    请详细描述这张图片的内容。
+
+    要求：
+    1. 识别图片的类型（几何图形、数学公式、统计图表、示意图等）
+    2. 描述图片中的关键元素和细节
+    3. 如果有文字或标注，请准确引用
+    4. 描述要准确、简洁，不超过200字
+
+    请直接返回描述文本，不要添加其他内容。
+
+  semantic_matching: |
+    你是一个智能文档处理助手，负责将图片占位符与实际图片进行语义匹配。
+
+    ## 任务说明
+    我会给你：
+    1. 完整的Markdown文档内容（包含所有占位符及其上下文）
+    2. 一组实际图片的描述（由GLM-4.6V-Flash视觉模型生成）
+
+    请你**仔细阅读整个文档，理解每个占位符在文档中的上下文**，然后将占位符匹配到最合适的图片。
+
+    ## 匹配原则
+    1. **上下文理解**：优先根据占位符在文档中的位置和内容来判断
+    2. **语义相似度**：占位符描述的内容应该与图片描述的内容高度一致
+    3. **细节匹配**：关键元素（如形状、标注、文字、数量等）必须匹配
+    4. **一一对应**：每个占位符匹配一个唯一的图片，**每个图片只能匹配一个占位符**
+    5. **不存在重复匹配**：如果多个占位符看起来相似，只选择第一个最合适的匹配
+    6. **精确匹配**：如果找不到合适的匹配，就返回null，不要强行匹配
+
+  markdown_formatting: |
+    你是一个专业的Markdown排版专家。请对以下OCR识别的Markdown文本进行排版优化。
+
+    ## 排版要求
+
+    ### 1. 标题层级规范
+    - 一级标题：使用 `#` （如：# 一、茶树的起源）
+    - 二级标题：使用 `##` （如：## (一) 茶树起源的佐证）
+    - 三级标题：使用 `###` （如：### 1. 最早的茶字）
+    - 四级标题：使用 `####` （如：#### (1) "茶"字的由来）
+    - 五级标题：使用 `##### ` （如：##### ① 若）
+
+    ### 2. 列表格式规范
+    - 无序列表：使用 `- ` 开头
+    - 有序列表：使用 `1. ` 开头
+    - 嵌套列表：使用缩进（2空格或4空格）
+
+    ### 3. 页面连接处理
+    - 移除页面之间的断句
+    - 保持段落的完整性
+    - 移除误识别的页码
+
+    ### 4. 文本清理
+    - 移除多余空行（保留1个空行分隔段落）
+    - 移除行首行尾多余空格
+    - 修复明显的OCR错误
+
+    ### 5. 格式统一
+    - 标题与内容之间保留1个空行
+    - 段落之间保留1个空行
+    - 列表项之间不保留空行
+
+    ## 输出要求
+    1. **只输出优化后的Markdown内容**，不要有解释或前言
+    2. 保持原意不变，只优化格式
+    3. 不要删除任何内容
+    4. 输出必须是纯Markdown格式，不要使用markdown代码块包裹
+
+# Markdown到HTML转换配置（新增v2.1）
+markdown_to_html:
+  # 图片处理
+  image_embedding: "base64"  # base64（Word完美兼容） | relative（相对路径） | hybrid（混合模式）
+  image_max_size: 1280  # 图片最大尺寸（像素），超过会等比压缩
+  image_quality: 85  # JPEG压缩质量（1-100），仅对JPEG有效
+
+  # 公式处理
+  formula_format: "script"  # script（<script type="math/tex">，可编辑） | text（纯文本） | image（图片，不推荐）
+
+  # 排版特性
+  enable_columns: true  # 启用多栏布局（2栏/3栏）
+  enable_tables: true  # 启用复杂表格（合并单元格、边框）
+  enable_lists: true  # 启用多层列表（嵌套有序/无序列表）
+
+  # 样式配置
+  default_font: "宋体"  # 默认中文字体
+  default_font_size: 10.5  # 默认字号（pt），对应五号字
+  line_height: 1.6  # 行高倍数
+  page_size: "A4"  # 页面尺寸
+  page_margin: "20pt 30pt"  # 页边距（上下 左右）
+
+  # 输出选项
+  include_mathjax: true  # 包含 MathJax CDN（用于浏览器端公式渲染）
+  pretty_print: true  # 美化 HTML 输出（格式化缩进）
