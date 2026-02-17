@@ -46,6 +46,7 @@ class DOCXConverter(BaseConverter):
         self.enable_code_cleanup = self.docx_config.get('enable_code_block_cleanup', True)
         self.enable_separator_cleanup = self.docx_config.get('enable_separator_cleanup', True)
         self.enable_duplicate_detection = self.docx_config.get('enable_duplicate_detection', True)
+        self.enable_deepseek_formatting = self.docx_config.get('enable_deepseek_formatting', False)  # 新增：DeepSeek格式校对开关
 
     def convert(
         self,
@@ -150,6 +151,15 @@ class DOCXConverter(BaseConverter):
                 images_dir
             )
             self.stats['stages_completed'].append('Stage 4: 智能占位符替换')
+
+            # ========== Stage 5: DeepSeek格式校对（可选） ==========
+            if self.enable_deepseek_formatting:
+                self.logger.info("\n" + "=" * 60)
+                self.logger.info("Stage 5: DeepSeek 格式校对（高精度模式）")
+                self.logger.info("=" * 60)
+
+                final_markdown = self._format_with_deepseek(final_markdown)
+                self.stats['stages_completed'].append('Stage 5: DeepSeek格式校对')
 
             # 保存最终结果
             output_file = self._get_output_filename(input_path, output_dir)
@@ -331,20 +341,27 @@ class DOCXConverter(BaseConverter):
         """移除GLM误识别的无效代码块"""
         import re
 
-        # 移除不包含有效代码的代码块
-        def is_valid_code_block(match):
-            code = match.group(1)
-            # 检查是否包含实际的代码特征
-            code_indicators = [
-                'def ', 'class ', 'import ', 'from ', 'function',
-                'var ', 'let ', 'const ', 'function', '=>',
-                '{', '}', 'if ', 'else', 'for ', 'while '
-            ]
-            return any(indicator in code for indicator in code_indicators)
+        # 定义有效的编程语言标签（只保留这些语言的代码块）
+        valid_languages = {
+            'markdown', 'python', 'py', 'javascript', 'js', 'java',
+            'c', 'cpp', 'c++', 'go', 'rust', 'ruby', 'php', 'swift',
+            'kotlin', 'typescript', 'ts', 'shell', 'bash', 'sql',
+            'html', 'css', 'xml', 'json', 'yaml', 'yml'
+        }
 
-        # 保留有效的代码块，移除无效的
+        # 保留有效语言的代码块，移除其他代码块的标记
+        def replace_code_block(match):
+            lang = match.group(1).lower() if match.group(1) else ''
+            if lang in valid_languages:
+                # 保留代码块标记
+                return match.group(0)
+            else:
+                # 移除代码块标记，只保留内容
+                return match.group(2)
+
+        # 匹配代码块：```语言标识符（可选）+ 内容 + ```
         pattern = r'```(\w*)\n(.*?)\n```'
-        valid_content = re.sub(pattern, lambda m: m.group(0) if is_valid_code_block(m) else m.group(2), content, flags=re.DOTALL)
+        valid_content = re.sub(pattern, replace_code_block, content, flags=re.DOTALL)
 
         return valid_content
 
@@ -366,3 +383,93 @@ class DOCXConverter(BaseConverter):
                 self.logger.warning(f"  ⚠️  检测到重复匹配，移除占位符 {placeholder_idx} → {image_filename}")
 
         return cleaned_mapping
+
+    def _format_with_deepseek(self, markdown_content: str) -> str:
+        """使用DeepSeek进行格式校对
+        
+        Args:
+            markdown_content: 待校对的Markdown内容
+            
+        Returns:
+            校对后的Markdown内容
+        """
+        self.logger.info("  正在调用DeepSeek进行格式校对...")
+        
+        prompt = """你是一个专业的Markdown格式校对专家。请校对以下Markdown文档的格式。
+
+## 校对要求
+
+### 1. 数学符号处理（最重要！）
+
+**遵循"简单用Unicode，复杂用LaTeX"原则**
+
+**优先使用Unicode字符：**
+- 希腊字母：`α = 30°`、`π ≈ 3.14`、`θ > 0`
+- 运算符号：`a × b`、`a ÷ b`、`a ± b`
+- 比较符号：`a ≠ b`、`a ≤ b`、`a ≥ b`、`a ≈ b`
+- 特殊符号：`∞`、`°`、`√2`、`²`、`³`
+
+**必须用LaTeX $...$ 包裹：**
+- 分数：`$\frac{1}{2}$`、`$\frac{a+b}{c-d}$`
+- 复杂上下标：`$x_1$`、`$x^{n+1}$`、`$10^{-6}$`
+- 几何符号：`$\widehat{AB}$`、`$\angle ABC$`、`$\triangle ABC$`
+- 求和积分：`$\sum_{i=1}^{n}$`、`$\int_0^1$`
+
+### 2. 标题层级规范
+- 一级标题：`#`
+- 二级标题：`##`
+- 三级标题：`###`
+- 确保层级正确，不要越级
+
+### 3. 清理多余空行
+- 段落之间保留1个空行
+- 标题前后保留1个空行
+- 列表项之间不留空行
+- 删除连续的多个空行
+
+### 4. 列表格式
+- 无序列表使用 `- ` 开头
+- 有序列表使用 `1. ` 开头
+- 确保缩进一致（2空格或4空格）
+
+### 5. 表格格式
+- 使用标准Markdown表格语法
+- 确保列对齐（使用 `:---` 控制对齐方式）
+
+### 6. 代码块
+- 只保留有效的编程语言代码块
+- 移除误识别的普通文本代码块
+
+## 输出要求
+
+1. **只输出校对后的Markdown内容**，不要有解释或前言
+2. 保持原意不变，只优化格式
+3. 不要删除任何内容
+4. 输出必须是纯Markdown格式，不要使用markdown代码块包裹
+
+---
+
+请校对以下Markdown内容：
+
+"""
+        
+        try:
+            # 调用DeepSeek API
+            formatted = self.deepseek_client.chat(prompt + markdown_content)
+            
+            # 清理可能的markdown代码块包裹
+            if formatted.startswith('```markdown'):
+                formatted = formatted.replace('```markdown', '', 1)
+            if formatted.startswith('```'):
+                formatted = formatted.replace('```', '', 1)
+            if formatted.endswith('```'):
+                formatted = formatted[:-3]
+            
+            formatted = formatted.strip()
+            
+            self.logger.info("  ✓ 格式校对完成")
+            return formatted
+            
+        except Exception as e:
+            self.logger.warning(f"  ⚠️  格式校对失败: {e}，返回原始内容")
+            return markdown_content

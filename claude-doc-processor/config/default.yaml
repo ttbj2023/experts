@@ -64,6 +64,7 @@ processing:
     enable_code_block_cleanup: true  # 启用代码块清理
     enable_separator_cleanup: true  # 启用分隔符清理
     enable_duplicate_detection: true  # 启用重复匹配检测
+    enable_deepseek_formatting: false  # 启用DeepSeek格式校对（Stage 5，高精度模式）
 
 # 输出配置
 output:
