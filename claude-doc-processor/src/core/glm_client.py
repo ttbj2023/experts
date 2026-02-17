@@ -86,7 +86,7 @@ class GLMClient:
                     ]
                 }
             ],
-            "max_tokens": 500,
+            "max_tokens": 1000,           # 提高token限制，允许更详细的描述
             "temperature": self.temperature
         }
 

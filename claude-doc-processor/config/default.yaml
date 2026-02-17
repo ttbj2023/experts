@@ -6,9 +6,9 @@ models:
   glm:
     api_url: "http://192.168.100.110:9999"
     model: "zai-org/glm-4.6v-flash"
-    max_tokens: 8192
+    max_tokens: 32768          # 输出token数（常用32k，最大128k）
     timeout: 60
-    temperature: 0.3
+    temperature: 0.1           # 低温度，确保输出稳定
 
   # DeepSeek 配置
   deepseek:
@@ -58,9 +58,9 @@ processing:
   # DOCX 处理配置
   docx:
     libreoffice_timeout: 60
-    image_max_size: 1280  # GLM描述图片的最大尺寸
+    image_max_size: 1920  # GLM描述图片的最大尺寸（low档位：1920px高清）
     document_chunk_size: 64000  # 文档分段字符数阈值
-    image_quality: 85  # JPEG压缩质量
+    image_quality: 90  # JPEG压缩质量（90=高质量）
     enable_code_block_cleanup: true  # 启用代码块清理
     enable_separator_cleanup: true  # 启用分隔符清理
     enable_duplicate_detection: true  # 启用重复匹配检测
@@ -179,8 +179,8 @@ prompts:
 markdown_to_html:
   # 图片处理
   image_embedding: "base64"  # base64（Word完美兼容） | relative（相对路径） | hybrid（混合模式）
-  image_max_size: 1280  # 图片最大尺寸（像素），超过会等比压缩
-  image_quality: 85  # JPEG压缩质量（1-100），仅对JPEG有效
+  image_max_size: 1920  # 图片最大尺寸（像素），超过会等比压缩（1920px高清）
+  image_quality: 90  # JPEG压缩质量（1-100），仅对JPEG有效（90=高质量）
 
   # 公式处理
   formula_format: "script"  # script（<script type="math/tex">，可编辑） | text（纯文本） | image（图片，不推荐）
