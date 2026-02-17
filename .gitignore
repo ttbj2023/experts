@@ -55,3 +55,6 @@ src/assistant_experts/*/data/
 **/test_*.md
 **/test_*.pdf
 **/test_*.docx
+
+# Input files (large PDFs)
+**/input_file/
