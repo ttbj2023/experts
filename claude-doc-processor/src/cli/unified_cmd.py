@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """
-统一文档转换命令
+统一文档转换命令（v4统一架构）
 
-智能识别文档类型（PDF/DOCX）并选择最优处理流程
+核心设计：
+- DOCX只是PDF的前体（通过LibreOffice转换）
+- PDF→MD是通用流程
+- 根据PDF类型智能选择处理策略
+- 支持逐页内容精修（Stage 3.5）
 """
 
 import sys
@@ -20,30 +24,38 @@ from src.converters.unified_converter import UnifiedConverter
 def main():
     """统一文档转换命令行入口"""
     parser = argparse.ArgumentParser(
-        description='智能文档转换器（自动识别PDF/DOCX并选择最优流程）',
+        description='统一文档转换器（v4架构：PDF/DOCX统一流程）',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
-  # 单个文件转换
+  # 基础转换
   %(prog)s document.pdf
   %(prog)s document.docx -o output_dir
 
+  # 启用内容精修（Stage 3.5）
+  %(prog)s document.pdf --refine-content
+
+  # 限制页数
+  %(prog)s document.pdf --max-pages 10
+
   # 批量转换
-  %(prog)s docs/*.pdf
+  %(prog)s docs/*.pdf --batch
   %(prog)s documents/* -o batch_output
 
-  # 自定义配置
-  %(prog)s document.pdf --config custom.yaml
-  %(prog)s document.docx --max-pages 10
+统一流程架构:
+  Stage 0: DOCX→PDF预处理（可选）
+  Stage 1: PDF类型检测（文档型 vs 扫描型）
+  Stage 2: 图片提取（分支选择）
+  Stage 3: OCR识别（GLM逐页）
+  Stage 3.5: 内容整理（DeepSeek逐页，可选）⭐
+  Stage 4: 图片描述（GLM）
+  Stage 5: 语义匹配（DeepSeek全局）
+  Stage 6: 智能替换（去重+清理）
 
-支持的文档类型:
-  PDF文档:
-    • 数字版PDF → 直接提取文本（快速）
-    • 扫描版PDF → 完整OCR流程
-
-  DOCX文档:
-    • 简单DOCX → 直接提取文本（快速）
-    • 复杂DOCX → 完整处理流程
+核心优势:
+  - DOCX只是PDF的前体，统一处理流程
+  - 智能检测PDF类型，自动选择最优策略
+  - 支持逐页内容精修，提升输出质量
         """
     )
 
@@ -76,10 +88,10 @@ def main():
     )
 
     parser.add_argument(
-        '--format-with-deepseek',
+        '--refine-content',
         action='store_true',
-        dest='format_with_deepseek',
-        help='启用DeepSeek排版优化（仅扫描版PDF）'
+        dest='enable_content_refinement',
+        help='启用Stage 3.5逐页内容整理（DeepSeek精修，推荐）'
     )
 
     parser.add_argument(
@@ -173,7 +185,7 @@ def main():
                     input_path,
                     file_output_dir,
                     max_pages=args.max_pages,
-                    format_with_deepseek=args.format_with_deepseek
+                    enable_content_refinement=args.enable_content_refinement
                 )
 
                 # 记录结果
@@ -184,7 +196,8 @@ def main():
                         'status': 'success',
                         'output': output_path,
                         'time': stats.get('processing_time', 0),
-                        'method': stats.get('processing_method', 'unknown')
+                        'pdf_type': stats.get('pdf_type', 'unknown'),
+                        'stages': stats.get('stages_completed', [])
                     })
                 else:
                     failed_count += 1
@@ -223,8 +236,9 @@ def main():
             for r in results:
                 if r['status'] == 'success':
                     print(f"✅ {os.path.basename(r['file'])}")
-                    print(f"   方法: {r['method']}")
-                    print(f"   时间: {r['time']:.2f}秒")
+                    print(f"   PDF类型: {r['pdf_type']}")
+                    print(f"   处理时间: {r['time']:.2f}秒")
+                    print(f"   完成阶段: {len(r['stages'])}个")
                     print(f"   输出: {r['output']}")
                 else:
                     print(f"❌ {os.path.basename(r['file'])}")

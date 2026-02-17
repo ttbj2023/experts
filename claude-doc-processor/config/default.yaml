@@ -7,7 +7,7 @@ models:
     api_url: "http://192.168.100.110:9999"
     model: "zai-org/glm-4.6v-flash"
     max_tokens: 32768          # 输出token数（常用32k，最大128k）
-    timeout: 60
+    timeout: 180               # 增加到180秒（针对扫描版高密度PDF）
     temperature: 0.05          # 优化参数：100%成功率（测试日期：2026-02-18）
 
   # DeepSeek 配置
@@ -53,7 +53,8 @@ processing:
     max_pages: null  # null表示处理所有页
     opencv_min_area: 0.02  # OpenCV图片检测最小面积比例
     opencv_padding: 10  # OpenCV边界框扩展像素
-    enable_formatting: false  # 是否启用DeepSeek排版优化
+    enable_formatting: false  # 是否启用DeepSeek排版优化（旧版，已废弃）
+    enable_content_refinement: false  # 是否启用Stage 3.5逐页内容整理（推荐）
 
   # DOCX 处理配置
   docx:
@@ -121,7 +122,7 @@ prompts:
     请直接返回描述文本，不要添加其他内容。
 
   semantic_matching: |
-    你是一个智能文档处理助手，负责将图片占位符与实际图片进行语义匹配。
+    你是一个智能文档处理助手，负责将图片占位符与实际图片进行语义匹配，并返回JSON格式的匹配结果。
 
     ## 任务说明
     我会给你：
@@ -137,6 +138,9 @@ prompts:
     4. **一一对应**：每个占位符匹配一个唯一的图片，**每个图片只能匹配一个占位符**
     5. **不存在重复匹配**：如果多个占位符看起来相似，只选择第一个最合适的匹配
     6. **精确匹配**：如果找不到合适的匹配，就返回null，不要强行匹配
+
+    ## JSON输出要求
+    请严格按照JSON格式返回匹配结果。
 
   markdown_formatting: |
     你是一个专业的Markdown排版专家。请对以下OCR识别的Markdown文本进行排版优化。

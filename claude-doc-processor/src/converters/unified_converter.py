@@ -1,416 +1,685 @@
 """
-统一转换器
+统一文档转换器
 
-智能识别文档类型并选择最优处理流程
+核心设计理念：
+- DOCX只是PDF的前体（通过LibreOffice转换）
+- PDF→MD是通用流程
+- 根据PDF类型选择不同分支：
+  1. 文档型PDF（可提取嵌入图片，如DOCX转换的）
+  2. 扫描型PDF（纯图像，需要OpenCV）
+
+统一流程架构：
+  - Stage 0: DOCX→PDF预处理（可选）
+  - Stage 1: 文档解析（PDF类型检测）
+  - Stage 2: 图片提取（分支选择）
+  - Stage 3: OCR识别（GLM逐页）
+  - Stage 3.5: 内容整理（DeepSeek逐页，可选）
+  - Stage 4: 图片描述（GLM）
+  - Stage 5: 语义匹配（DeepSeek全局）
+  - Stage 6: 智能替换（去重+清理）
 """
 
 import os
-import logging
-from typing import Dict, Tuple
+import subprocess
+import tempfile
+from pathlib import Path
+from typing import Dict, List, Tuple, Optional
+import fitz  # PyMuPDF
+
 from .base import BaseConverter
-from .pdf_converter import PDFConverter
-from .docx_converter import DOCXConverter
-from ..core.document_detector import DocumentDetector
-from ..core.text_extractor import TextExtractor
+from ..core.glm_client import GLMClient
 from ..core.deepseek_client import DeepSeekClient
-
-
-logger = logging.getLogger(__name__)
+from ..core.image_processor import ImageProcessor
+from ..core.ocr_engine import OCREngine
 
 
 class UnifiedConverter(BaseConverter):
     """
-    统一文档转换器
+    统一文档转换器（v4统一架构）
 
-    智能检测文档类型并选择最优处理流程：
-
-    PDF文档：
-    - 数字版PDF → 直接提取文本 + DeepSeek格式化（快速）
-    - 扫描版PDF → 完整OCR流程（PDFConverter）
-
-    DOCX文档：
-    - 简单DOCX → 直接提取文本 + DeepSeek格式化（快速）
-    - 复杂DOCX → LibreOffice + OCR流程（DOCXConverter）
+    核心理念：
+    - DOCX只是PDF的前体，PDF→MD是通用流程
+    - 根据PDF类型智能选择处理策略
+    - 支持逐页精修（Stage 3.5）
     """
+
+    # PDF类型枚举
+    PDF_TYPE_DOCUMENT = "document"  # 文档型PDF（可提取嵌入图片）
+    PDF_TYPE_SCANNED = "scanned"    # 扫描型PDF（纯图像）
 
     def __init__(self, config_path: str = None):
         """初始化统一转换器"""
         super().__init__(config_path)
 
-        # 初始化检测器和提取器
-        self.detector = DocumentDetector(self.config)
-        self.extractor = TextExtractor(self.config)
+        # 初始化核心组件
+        self.glm_client = GLMClient(self.config)
         self.deepseek_client = DeepSeekClient(self.config)
+        self.image_processor = ImageProcessor(self.config)
+        self.ocr_engine = OCREngine(self.config)
 
-        # 初始化专用转换器（用于复杂文档）
-        self.pdf_converter = PDFConverter(config_path)
-        self.docx_converter = DOCXConverter(config_path)
-
-        # 获取检测配置
+        # 处理配置
         self.detection_config = self.config.get('detection', {})
-        self.fallback_on_error = self.detection_config.get('fallback_on_error', True)
+        self.pdf_config = self.config.get('processing', {}).get('pdf', {})
+        self.docx_config = self.config.get('processing', {}).get('docx', {})
+
+        # 开关配置
+        self.enable_content_refinement = self.pdf_config.get('enable_content_refinement', False)  # Stage 3.5
+        self.enable_code_cleanup = self.docx_config.get('enable_code_block_cleanup', True)
+        self.enable_separator_cleanup = self.docx_config.get('enable_separator_cleanup', True)
+        self.enable_duplicate_detection = self.docx_config.get('enable_duplicate_detection', True)
+
+        # PDF处理参数
+        self.dpi = self.pdf_config.get('dpi', 200)
+        self.max_pages = self.pdf_config.get('max_pages', None)
+        self.libreoffice_timeout = self.docx_config.get('libreoffice_timeout', 60)
 
     def convert(
         self,
         input_path: str,
         output_dir: str,
-        **kwargs
+        max_pages: int = None,
+        enable_content_refinement: bool = None
     ) -> Tuple[bool, str, Dict]:
         """
-        智能转换文档（自动选择最优流程）
+        执行文档到Markdown的统一转换流程
 
         Args:
-            input_path: 输入文件路径
+            input_path: 输入文件路径（PDF或DOCX）
             output_dir: 输出目录
-            **kwargs: 额外参数（传递给底层转换器）
+            max_pages: 最大处理页数（None表示全部）
+            enable_content_refinement: 是否启用Stage 3.5内容整理
 
         Returns:
             (成功状态, 输出文件路径, 统计信息)
         """
         self._start_timer()
 
+        # 验证输入
+        if not self._validate_input_file(input_path, ['.pdf', '.docx', '.doc']):
+            return False, '', self.stats
+
+        # 创建输出目录
+        if not self._create_output_dir(output_dir):
+            return False, '', self.stats
+
+        # 更新配置
+        if max_pages is None:
+            max_pages = self.max_pages
+        if enable_content_refinement is None:
+            enable_content_refinement = self.enable_content_refinement
+
         self.logger.info("\n" + "=" * 70)
-        self.logger.info("🤖 智能文档转换器")
+        self.logger.info("统一文档转换流程（v4架构）")
         self.logger.info("=" * 70)
-        self.logger.info(f"输入文件: {input_path}")
-        self.logger.info(f"输出目录: {output_dir}")
+        self.logger.info(f"输入: {input_path}")
+        self.logger.info(f"输出: {output_dir}")
+        self.logger.info(f"页数限制: {max_pages or '全部'}")
+        self.logger.info(f"内容整理(Stage 3.5): {'启用' if enable_content_refinement else '禁用'}")
 
         try:
-            # ========== 阶段1: 检测文档类型 ==========
-            self.logger.info("\n" + "-" * 70)
-            self.logger.info("🔍 阶段1: 检测文档类型...")
-            self.logger.info("-" * 70)
+            # ========== Stage 0: DOCX→PDF预处理（可选） ==========
+            pdf_path, docx_images = self._stage0_docx_to_pdf(input_path, output_dir)
+            self.stats['stages_completed'].append('Stage 0: 文档预处理')
 
-            file_format, subtype = self.detector.detect_document_type(input_path)
+            # ========== Stage 1: 文档解析（PDF类型检测） ==========
+            pdf_type = self._stage1_detect_pdf_type(pdf_path)
+            self.stats['pdf_type'] = pdf_type
+            self.stats['stages_completed'].append(f'Stage 1: PDF类型检测 ({pdf_type})')
 
-            self.logger.info(f"✅ 检测结果:")
-            self.logger.info(f"   - 文件格式: {file_format.upper()}")
-            self.logger.info(f"   - 子类型: {subtype}")
+            # ========== Stage 2: 图片提取（分支选择） ==========
+            all_images = self._stage2_extract_images(
+                pdf_path, output_dir, docx_images, pdf_type, max_pages
+            )
+            self.stats['total_images'] = len(all_images)
+            self.stats['stages_completed'].append(f'Stage 2: 图片提取 ({len(all_images)}张)')
 
-            # ========== 阶段2: 选择处理流程 ==========
-            self.logger.info("\n" + "-" * 70)
-            self.logger.info("⚙️  阶段2: 选择处理流程...")
-            self.logger.info("-" * 70)
+            # ========== Stage 3: OCR识别（GLM逐页） ==========
+            markdown_pages, all_placeholders = self._stage3_ocr_pages(
+                pdf_path, max_pages, enable_content_refinement
+            )
+            self.stats['stages_completed'].append('Stage 3: OCR识别')
 
-            # PDF文档
-            if file_format == 'pdf':
-                if subtype == 'digital':
-                    self.logger.info("✅ 流程: 数字版PDF快速提取")
-                    return self._process_digital_pdf(input_path, output_dir, **kwargs)
-                else:  # scanned
-                    self.logger.info("✅ 流程: 扫描版PDF完整OCR")
-                    return self._delegate_to_pdf_converter(input_path, output_dir, **kwargs)
+            # 合并所有页面
+            markdown = '\n\n'.join(markdown_pages)
 
-            # DOCX文档
-            elif file_format == 'docx':
-                if subtype == 'simple':
-                    self.logger.info("✅ 流程: 简单DOCX快速提取")
-                    return self._process_simple_docx(input_path, output_dir, **kwargs)
-                else:  # complex
-                    self.logger.info("✅ 流程: 复杂DOCX完整处理")
-                    return self._delegate_to_docx_converter(input_path, output_dir, **kwargs)
+            # 保存中间结果（OCR原始输出）
+            raw_md_path = os.path.join(output_dir, 'stage3_raw_ocr.md')
+            with open(raw_md_path, 'w', encoding='utf-8') as f:
+                f.write(markdown)
 
+            # ========== Stage 4: 图片描述（GLM） ==========
+            if all_images:
+                image_descriptions = self._stage4_describe_images(all_images)
+                self.stats['stages_completed'].append('Stage 4: 图片描述')
             else:
-                raise ValueError(f"不支持的文件格式: {file_format}")
+                image_descriptions = []
+                self.logger.info("⚡ Stage 4: 无需图片描述（跳过）")
 
-        except Exception as e:
-            self.logger.error(f"❌ 转换失败: {e}")
+            # ========== Stage 5: 语义匹配（DeepSeek全局） ==========
+            if all_placeholders and image_descriptions:
+                mapping = self._stage5_semantic_matching(markdown, all_placeholders, image_descriptions)
+                self.stats['matched_images'] = len(mapping)
+                self.stats['stages_completed'].append(f'Stage 5: 语义匹配 ({len(mapping)}/{len(all_placeholders)})')
+            else:
+                mapping = {}
+                self.logger.info("⚡ Stage 5: 无需语义匹配（跳过）")
 
-            # 回退机制：如果配置了回退，尝试使用完整流程
-            if self.fallback_on_error:
-                self.logger.info("\n" + "-" * 70)
-                self.logger.info("🔄 触发回退机制，使用完整流程...")
-                self.logger.info("-" * 70)
-
-                ext = os.path.splitext(input_path)[1].lower()
-                if ext == '.pdf':
-                    return self._delegate_to_pdf_converter(input_path, output_dir, **kwargs)
-                elif ext in ['.docx', '.doc']:
-                    return self._delegate_to_docx_converter(input_path, output_dir, **kwargs)
-
-            raise
-
-    # ========================================
-    # 快速处理流程（新增）
-    # ========================================
-
-    def _process_digital_pdf(
-        self,
-        input_path: str,
-        output_dir: str,
-        **kwargs
-    ) -> Tuple[bool, str, Dict]:
-        """
-        处理数字版PDF（快速流程）
-
-        流程：
-        1. PyMuPDF直接提取文本
-        2. 提取嵌入图片
-        3. DeepSeek格式化为Markdown
-
-        Args:
-            input_path: PDF文件路径
-            output_dir: 输出目录
-            **kwargs: 额外参数
-
-        Returns:
-            (成功状态, 输出文件路径, 统计信息)
-        """
-        self.logger.info("\n" + "=" * 70)
-        self.logger.info("📄 数字版PDF快速处理")
-        self.logger.info("=" * 70)
-
-        try:
-            # ========== Step 1: 提取文本和图片 ==========
-            self.logger.info("\n[1/3] 提取文本和图片...")
-
-            raw_text, image_paths = self.extractor.extract_from_digital_pdf(input_path)
-
-            self.logger.info(f"✅ 提取完成:")
-            self.logger.info(f"   - 文本长度: {len(raw_text)} 字符")
-            self.logger.info(f"   - 图片数量: {len(image_paths)}")
-
-            # 保存原始文本（用于调试）
-            if self.config.get('output', {}).get('save_intermediate', True):
-                raw_text_file = os.path.join(output_dir, 'stage1_raw_text.txt')
-                os.makedirs(output_dir, exist_ok=True)
-                with open(raw_text_file, 'w', encoding='utf-8') as f:
-                    f.write(raw_text)
-                self.logger.info(f"💾 保存原始文本: {raw_text_file}")
-
-            # ========== Step 2: DeepSeek格式化 ==========
-            self.logger.info("\n[2/3] DeepSeek格式化为Markdown...")
-
-            formatted_markdown = self.deepseek_client.format_markdown(raw_text)
-
-            self.logger.info(f"✅ 格式化完成: {len(formatted_markdown)} 字符")
-
-            # 保存格式化结果
-            if self.config.get('output', {}).get('save_intermediate', True):
-                formatted_file = os.path.join(output_dir, 'stage2_formatted.md')
-                os.makedirs(output_dir, exist_ok=True)
-                with open(formatted_file, 'w', encoding='utf-8') as f:
-                    f.write(formatted_markdown)
-                self.logger.info(f"💾 保存格式化结果: {formatted_file}")
-
-            # ========== Step 3: 替换图片路径 ==========
-            self.logger.info("\n[3/3] 处理图片路径...")
-
-            final_markdown = self._replace_image_paths(
-                formatted_markdown,
-                image_paths,
-                output_dir
+            # ========== Stage 6: 智能替换 ==========
+            images_dir = os.path.join(output_dir, 'images')
+            final_markdown = self._stage6_smart_replacement(
+                markdown,
+                mapping,
+                images_dir
             )
+            self.stats['stages_completed'].append('Stage 6: 智能替换')
 
             # 保存最终结果
-            os.makedirs(output_dir, exist_ok=True)
             output_file = self._get_output_filename(input_path, output_dir)
             with open(output_file, 'w', encoding='utf-8') as f:
                 f.write(final_markdown)
 
-            # 更新统计信息
-            self.stats['input_file'] = input_path
-            self.stats['output_file'] = output_file
-            self.stats['total_images'] = len(image_paths)
-            self.stats['processing_method'] = 'fast_digital_pdf'
-            self.stats['stages_completed'] = [
-                'Step 1: 文本提取',
-                'Step 2: DeepSeek格式化',
-                'Step 3: 图片处理'
-            ]
-
             # 保存元数据
-            self._save_metadata(output_dir, self.stats)
-            self._stop_timer()
+            self._save_metadata(output_dir, input_path, output_file, len(all_images), len(mapping))
 
-            self.logger.info("\n" + "=" * 70)
-            self.logger.info("✅ 数字版PDF处理完成")
-            self.logger.info("=" * 70)
-            self.logger.info(f"输出文件: {output_file}")
-            self.logger.info(f"处理时间: {self.stats['processing_time']:.2f}秒")
+            self._stop_timer()
+            self.stats['success'] = True
 
             return True, output_file, self.stats
 
         except Exception as e:
-            self.logger.error(f"数字版PDF处理失败: {e}")
-            # 如果快速流程失败，回退到完整OCR流程
-            if self.fallback_on_error:
-                self.logger.info("🔄 回退到完整OCR流程...")
-                return self._delegate_to_pdf_converter(input_path, output_dir, **kwargs)
-            raise
+            self.logger.error(f"❌ 转换失败: {e}", exc_info=True)
+            self.stats['success'] = False
+            self.stats['error'] = str(e)
+            return False, '', self.stats
 
-    def _process_simple_docx(
+    # ============================================================
+    # Stage 0: DOCX→PDF预处理
+    # ============================================================
+
+    def _stage0_docx_to_pdf(
         self,
         input_path: str,
-        output_dir: str,
-        **kwargs
-    ) -> Tuple[bool, str, Dict]:
+        output_dir: str
+    ) -> Tuple[str, List[Dict]]:
         """
-        处理简单DOCX（快速流程）
+        Stage 0: DOCX→PDF预处理
 
-        流程：
-        1. python-docx直接提取文本
-        2. DeepSeek格式化为Markdown
-
-        Args:
-            input_path: DOCX文件路径
-            output_dir: 输出目录
-            **kwargs: 额外参数
-
-        Returns:
-            (成功状态, 输出文件路径, 统计信息)
+        只对DOCX文件执行，PDF文件直接返回
+        同时提取DOCX中的嵌入图片
         """
-        self.logger.info("\n" + "=" * 70)
-        self.logger.info("📝 简单DOCX快速处理")
-        self.logger.info("=" * 70)
+        # 检测文件类型
+        if input_path.lower().endswith('.pdf'):
+            self.logger.info("\n" + "=" * 60)
+            self.logger.info("Stage 0: 文档预处理（跳过，已是PDF）")
+            self.logger.info("=" * 60)
+            return input_path, []
 
+        # DOCX文件
+        self.logger.info("\n" + "=" * 60)
+        self.logger.info("Stage 0: DOCX→PDF预处理")
+        self.logger.info("=" * 60)
+
+        basename = Path(input_path).stem
+        pdf_path = os.path.join(output_dir, f'{basename}.pdf')
+        images_dir = os.path.join(output_dir, 'docx_extracted_images')
+
+        # 提取DOCX嵌入图片
+        self.logger.info("  步骤0.1: 提取DOCX嵌入图片...")
+        docx_images, _ = self.image_processor.extract_from_docx(input_path, images_dir)
+        self.logger.info(f"  ✓ 提取了 {len(docx_images)} 张嵌入图片")
+
+        # LibreOffice转换
+        self.logger.info("  步骤0.2: LibreOffice转换（DOCX→PDF）...")
         try:
-            # ========== Step 1: 提取文本和图片 ==========
-            self.logger.info("\n[1/3] 提取文本和图片...")
-
-            raw_text, image_paths = self.extractor.extract_from_simple_docx(input_path)
-
-            self.logger.info(f"✅ 提取完成:")
-            self.logger.info(f"   - 文本长度: {len(raw_text)} 字符")
-            self.logger.info(f"   - 图片数量: {len(image_paths)}")
-
-            # 保存原始文本
-            if self.config.get('output', {}).get('save_intermediate', True):
-                raw_text_file = os.path.join(output_dir, 'stage1_raw_text.txt')
-                os.makedirs(output_dir, exist_ok=True)
-                with open(raw_text_file, 'w', encoding='utf-8') as f:
-                    f.write(raw_text)
-                self.logger.info(f"💾 保存原始文本: {raw_text_file}")
-
-            # ========== Step 2: DeepSeek格式化 ==========
-            self.logger.info("\n[2/3] DeepSeek格式化为Markdown...")
-
-            formatted_markdown = self.deepseek_client.format_markdown(raw_text)
-
-            self.logger.info(f"✅ 格式化完成: {len(formatted_markdown)} 字符")
-
-            # 保存格式化结果
-            if self.config.get('output', {}).get('save_intermediate', True):
-                formatted_file = os.path.join(output_dir, 'stage2_formatted.md')
-                os.makedirs(output_dir, exist_ok=True)
-                with open(formatted_file, 'w', encoding='utf-8') as f:
-                    f.write(formatted_markdown)
-                self.logger.info(f"💾 保存格式化结果: {formatted_file}")
-
-            # ========== Step 3: 替换图片路径 ==========
-            self.logger.info("\n[3/3] 处理图片路径...")
-
-            final_markdown = self._replace_image_paths(
-                formatted_markdown,
-                image_paths,
-                output_dir
+            result = subprocess.run(
+                [
+                    'soffice',
+                    '--headless',
+                    '--convert-to', 'pdf',
+                    '--outdir', output_dir,
+                    input_path
+                ],
+                timeout=self.libreoffice_timeout,
+                capture_output=True,
+                text=True
             )
 
-            # 保存最终结果
-            os.makedirs(output_dir, exist_ok=True)
-            output_file = self._get_output_filename(input_path, output_dir)
-            with open(output_file, 'w', encoding='utf-8') as f:
-                f.write(final_markdown)
+            if result.returncode == 0 and os.path.exists(pdf_path):
+                self.logger.info(f"  ✓ 转换成功: {pdf_path}")
+                return pdf_path, docx_images
+            else:
+                raise Exception(f"LibreOffice转换失败: {result.stderr}")
 
-            # 更新统计信息
-            self.stats['input_file'] = input_path
-            self.stats['output_file'] = output_file
-            self.stats['total_images'] = len(image_paths)
-            self.stats['processing_method'] = 'fast_simple_docx'
-            self.stats['stages_completed'] = [
-                'Step 1: 文本提取',
-                'Step 2: DeepSeek格式化',
-                'Step 3: 图片处理'
-            ]
-
-            # 保存元数据
-            self._save_metadata(output_dir, self.stats)
-            self._stop_timer()
-
-            self.logger.info("\n" + "=" * 70)
-            self.logger.info("✅ 简单DOCX处理完成")
-            self.logger.info("=" * 70)
-            self.logger.info(f"输出文件: {output_file}")
-            self.logger.info(f"处理时间: {self.stats['processing_time']:.2f}秒")
-
-            return True, output_file, self.stats
-
+        except subprocess.TimeoutExpired:
+            raise Exception(f"LibreOffice转换超时（>{self.libreoffice_timeout}秒）")
         except Exception as e:
-            self.logger.error(f"简单DOCX处理失败: {e}")
-            # 如果快速流程失败，回退到完整流程
-            if self.fallback_on_error:
-                self.logger.info("🔄 回退到完整处理流程...")
-                return self._delegate_to_docx_converter(input_path, output_dir, **kwargs)
-            raise
+            raise Exception(f"LibreOffice转换失败: {e}")
 
-    # ========================================
-    # 委托处理（复用现有转换器）
-    # ========================================
+    # ============================================================
+    # Stage 1: 文档解析（PDF类型检测）
+    # ============================================================
 
-    def _delegate_to_pdf_converter(
+    def _stage1_detect_pdf_type(self, pdf_path: str) -> str:
+        """
+        Stage 1: PDF类型检测
+
+        检测PDF类型：
+        - document: 文档型PDF（可提取嵌入图片）
+        - scanned: 扫描型PDF（纯图像）
+        """
+        self.logger.info("\n" + "=" * 60)
+        self.logger.info("Stage 1: PDF类型检测")
+        self.logger.info("=" * 60)
+
+        # 打开PDF
+        doc = fitz.open(pdf_path)
+
+        # 检测文本密度
+        text_threshold = self.detection_config.get('pdf', {}).get('text_threshold', 1000)
+        min_text_ratio = self.detection_config.get('pdf', {}).get('min_text_ratio', 0.1)
+
+        # 采样前5页
+        sample_pages = min(5, len(doc))
+        total_text_chars = 0
+        total_page_area = 0
+
+        for page_num in range(sample_pages):
+            page = doc[page_num]
+            text = page.get_text()
+            total_text_chars += len(text)
+
+            # 计算页面面积（像素）
+            rect = page.rect
+            page_area = rect.width * rect.height
+            total_page_area += page_area
+
+        doc.close()
+
+        # 计算文本密度
+        avg_text_chars = total_text_chars / sample_pages
+        text_ratio = total_text_chars / total_page_area if total_page_area > 0 else 0
+
+        self.logger.info(f"  检测结果:")
+        self.logger.info(f"    - 平均每页文本字符数: {avg_text_chars:.0f}")
+        self.logger.info(f"    - 文本密度比: {text_ratio:.4f}")
+        self.logger.info(f"    - 阈值: >={text_threshold}字符 且 >={min_text_ratio}密度")
+
+        # 判断类型
+        if avg_text_chars >= text_threshold and text_ratio >= min_text_ratio:
+            pdf_type = self.PDF_TYPE_DOCUMENT
+            self.logger.info(f"  ✓ 判定为: 文档型PDF（可提取嵌入图片）")
+        else:
+            pdf_type = self.PDF_TYPE_SCANNED
+            self.logger.info(f"  ✓ 判定为: 扫描型PDF（纯图像）")
+
+        return pdf_type
+
+    # ============================================================
+    # Stage 2: 图片提取（分支选择）
+    # ============================================================
+
+    def _stage2_extract_images(
         self,
-        input_path: str,
+        pdf_path: str,
         output_dir: str,
-        **kwargs
-    ) -> Tuple[bool, str, Dict]:
-        """委托给PDF转换器处理"""
-        self.logger.info("📋 使用PDF完整OCR流程...")
-        return self.pdf_converter.convert(input_path, output_dir, **kwargs)
+        docx_images: List[Dict],
+        pdf_type: str,
+        max_pages: int = None
+    ) -> List[Dict]:
+        """
+        Stage 2: 图片提取（分支选择）
 
-    def _delegate_to_docx_converter(
+        根据PDF类型选择提取策略：
+        - 文档型：使用DOCX提取的图片（如果有）
+        - 扫描型：使用OpenCV提取
+        """
+        self.logger.info("\n" + "=" * 60)
+        self.logger.info("Stage 2: 图片提取（分支选择）")
+        self.logger.info("=" * 60)
+        self.logger.info(f"  PDF类型: {pdf_type}")
+
+        # 分支1: 文档型PDF + 有DOCX图片 → 使用DOCX图片
+        if pdf_type == self.PDF_TYPE_DOCUMENT and docx_images:
+            self.logger.info(f"  策略: 使用DOCX嵌入图片（{len(docx_images)}张）")
+            return docx_images
+
+        # 分支2: 扫描型PDF 或 无DOCX图片 → OpenCV提取
+        self.logger.info("  策略: OpenCV精确提取")
+        images = self.image_processor.extract_from_pdf(
+            pdf_path,
+            output_dir,
+            self.dpi,
+            max_pages,
+            use_opencv=True
+        )
+
+        return images
+
+    # ============================================================
+    # Stage 3: OCR识别（GLM逐页）
+    # ============================================================
+
+    def _stage3_ocr_pages(
         self,
-        input_path: str,
-        output_dir: str,
-        **kwargs
-    ) -> Tuple[bool, str, Dict]:
-        """委托给DOCX转换器处理"""
-        self.logger.info("📋 使用DOCX完整处理流程...")
-        return self.docx_converter.convert(input_path, output_dir, **kwargs)
+        pdf_path: str,
+        max_pages: int = None,
+        enable_content_refinement: bool = False
+    ) -> Tuple[List[str], List[Dict]]:
+        """
+        Stage 3: OCR识别（GLM逐页）
 
-    # ========================================
-    # 工具方法
-    # ========================================
+        逐页OCR识别，可选Stage 3.5内容整理
 
-    def _replace_image_paths(
+        Returns:
+            (markdown页面列表, 所有占位符列表)
+        """
+        self.logger.info("\n" + "=" * 60)
+        self.logger.info("Stage 3: OCR识别（GLM逐页）")
+        if enable_content_refinement:
+            self.logger.info("  + Stage 3.5: 逐页内容整理（启用）")
+        self.logger.info("=" * 60)
+
+        # 打开PDF
+        doc = fitz.open(pdf_path)
+        total_pages = len(doc)
+
+        # 限制页数
+        if max_pages is None:
+            max_pages = total_pages
+        else:
+            max_pages = min(max_pages, total_pages)
+
+        markdown_pages = []
+        all_placeholders = []
+
+        # 逐页处理
+        for page_num in range(max_pages):
+            self.logger.info(f"\n处理第 {page_num + 1}/{max_pages} 页...")
+
+            page = doc[page_num]
+
+            # 渲染为图片并保存到临时文件
+            mat = fitz.Matrix(self.dpi / 72, self.dpi / 72)
+            pix = page.get_pixmap(matrix=mat)
+
+            # 保存到临时文件
+            with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp_file:
+                tmp_path = tmp_file.name
+                pix.save(tmp_path)
+
+            # Stage 3: GLM OCR识别
+            self.logger.info(f"  Stage 3: GLM OCR识别...")
+            try:
+                page_markdown = self.glm_client.ocr_page(tmp_path)
+            finally:
+                # 清理临时文件
+                try:
+                    os.unlink(tmp_path)
+                except:
+                    pass
+
+            # 统计占位符
+            page_placeholders = self._extract_placeholders(page_markdown)
+            self.logger.info(f"  ✓ OCR完成，提取到 {len(page_placeholders)} 个图片占位符")
+            all_placeholders.extend(page_placeholders)
+
+            # Stage 3.5: 内容整理（可选）
+            if enable_content_refinement:
+                self.logger.info(f"  Stage 3.5: DeepSeek内容整理...")
+                page_markdown = self._format_page_with_deepseek(page_markdown, page_num + 1)
+                self.logger.info(f"  ✓ 内容整理完成")
+
+            markdown_pages.append(page_markdown)
+
+        doc.close()
+
+        self.logger.info(f"\n✅ Stage 3 完成!")
+        self.logger.info(f"  总共识别: {max_pages} 页")
+        self.logger.info(f"  图片占位符: {len(all_placeholders)} 个")
+
+        return markdown_pages, all_placeholders
+
+    def _format_page_with_deepseek(self, page_markdown: str, page_num: int) -> str:
+        """
+        Stage 3.5: 单页内容整理（DeepSeek）
+
+        逐页优化格式，修正OCR错误
+        """
+        prompt_template = self.config.get('prompts', {}).get('markdown_formatting')
+
+        # 添加页码上下文
+        prompt = f"""{prompt_template}
+
+这是第 {page_num} 页的内容。请进行格式优化和错误修正。"""
+
+        formatted = self.deepseek_client.format_markdown(page_markdown, prompt)
+
+        return formatted
+
+    # ============================================================
+    # Stage 4: 图片描述（GLM）
+    # ============================================================
+
+    def _stage4_describe_images(self, images: List[Dict]) -> List[Dict]:
+        """
+        Stage 4: 图片描述（GLM）
+
+        为所有图片生成详细描述
+        """
+        self.logger.info("\n" + "=" * 60)
+        self.logger.info("Stage 4: 图片描述（GLM）")
+        self.logger.info("=" * 60)
+
+        image_descriptions = []
+
+        for idx, img_info in enumerate(images, 1):
+            filename = img_info['filename']
+            image_path = img_info['path']
+
+            self.logger.info(f"  [{idx}/{len(images)}] 描述图片: {filename}")
+
+            # GLM描述（直接传递文件路径）
+            description = self.glm_client.describe_image(image_path)
+
+            image_descriptions.append({
+                'filename': filename,
+                'path': image_path,
+                'page': img_info.get('page', 0),
+                'description': description
+            })
+
+            self.logger.info(f"    ✓ {description[:50]}...")
+
+        return image_descriptions
+
+    # ============================================================
+    # Stage 5: 语义匹配（DeepSeek全局）
+    # ============================================================
+
+    def _stage5_semantic_matching(
         self,
         markdown: str,
-        image_paths: list,
-        output_dir: str
+        placeholders: List[Dict],
+        image_descriptions: List[Dict]
+    ) -> Dict[str, str]:
+        """
+        Stage 5: 语义匹配（DeepSeek全局）
+
+        使用完整文档上下文进行占位符↔图片匹配
+        """
+        self.logger.info("\n" + "=" * 60)
+        self.logger.info("Stage 5: 语义匹配（DeepSeek全局）")
+        self.logger.info("=" * 60)
+        self.logger.info(f"  占位符: {len(placeholders)} 个")
+        self.logger.info(f"  图片描述: {len(image_descriptions)} 张")
+
+        prompt_template = self.config.get('prompts', {}).get('semantic_matching')
+
+        mapping = self.deepseek_client.semantic_matching(
+            markdown,
+            placeholders,
+            image_descriptions,
+            prompt_template
+        )
+
+        self.logger.info(f"  ✓ 匹配成功: {len(mapping)} 对")
+
+        return mapping
+
+    # ============================================================
+    # Stage 6: 智能替换
+    # ============================================================
+
+    def _stage6_smart_replacement(
+        self,
+        markdown: str,
+        mapping: Dict[str, str],
+        images_dir: str
     ) -> str:
         """
-        替换或添加图片引用
+        Stage 6: 智能替换
 
-        Args:
-            markdown: Markdown文本
-            image_paths: 图片路径列表
-            output_dir: 输出目录
-
-        Returns:
-            更新后的Markdown
+        去重、清理、替换占位符
         """
-        if not image_paths:
-            return markdown
+        self.logger.info("\n" + "=" * 60)
+        self.logger.info("Stage 6: 智能替换")
+        self.logger.info("=" * 60)
 
-        # 简单处理：在文件末尾添加图片列表
-        # TODO: 更智能的图片插入逻辑（基于上下文）
-        base_name = os.path.basename(output_dir)
+        final_markdown = markdown
 
-        image_section = "\n\n## 文档图片\n\n"
-        for i, img_path in enumerate(image_paths, 1):
-            # 使用相对路径
-            rel_path = os.path.relpath(img_path, output_dir)
-            image_section += f"![图片 {i}]({rel_path})\n\n"
+        # 1. 代码块清理
+        if self.enable_code_cleanup:
+            self.logger.info("  步骤6.1: 代码块清理...")
+            final_markdown = self._cleanup_code_blocks(final_markdown)
 
-        return markdown + image_section
+        # 2. 分隔符清理
+        if self.enable_separator_cleanup:
+            self.logger.info("  步骤6.2: 分隔符清理...")
+            final_markdown = self._cleanup_separators(final_markdown)
 
-    def _start_timer(self):
-        """开始计时"""
-        import time
-        self.stats['start_time'] = time.time()
+        # 3. 占位符替换
+        self.logger.info(f"  步骤6.3: 占位符替换（{len(mapping)}个）...")
+        final_markdown = self._replace_placeholders(final_markdown, mapping, images_dir)
 
-    def _stop_timer(self):
-        """停止计时"""
-        import time
-        if self.stats['start_time']:
-            self.stats['end_time'] = time.time()
-            self.stats['processing_time'] = self.stats['end_time'] - self.stats['start_time']
+        # 4. 重复检测（可选）
+        if self.enable_duplicate_detection:
+            self.logger.info("  步骤6.4: 重复检测...")
+            final_markdown = self._detect_duplicates(final_markdown)
+
+        self.logger.info("  ✓ 智能替换完成")
+
+        return final_markdown
+
+    # ============================================================
+    # 辅助方法
+    # ============================================================
+
+    def _extract_placeholders(self, markdown: str) -> List[Dict]:
+        """从Markdown中提取所有图片占位符"""
+        import re
+
+        pattern = r'<!--\s*IMAGE_PLACEHOLDER\s+(.*?)-->'
+        matches = re.findall(pattern, markdown, re.DOTALL)
+
+        placeholders = []
+        for idx, match in enumerate(matches, 1):
+            # 解析占位符属性
+            attrs = {}
+            for line in match.split('\n'):
+                if ':' in line:
+                    key, value = line.split(':', 1)
+                    attrs[key.strip()] = value.strip()
+
+            placeholders.append({
+                'index': idx,  # DeepSeekClient期望的键
+                'page': 0,     # 暂时设置为0，后续可以优化
+                'id': idx,     # 保留兼容性
+                'raw': match,
+                'type': attrs.get('type', 'unknown'),
+                'description': attrs.get('description', '')
+            })
+
+        return placeholders
+
+    def _cleanup_code_blocks(self, markdown: str) -> str:
+        """清理错误的代码块"""
+        import re
+
+        # 移除空代码块
+        markdown = re.sub(r'```\s*```', '', markdown)
+
+        return markdown
+
+    def _cleanup_separators(self, markdown: str) -> str:
+        """清理多余的分隔符"""
+        import re
+
+        # 移除连续的多个水平线（保留一个）
+        markdown = re.sub(r'(---\n){3,}', '---\n', markdown)
+
+        return markdown
+
+    def _replace_placeholders(
+        self,
+        markdown: str,
+        mapping: Dict[str, str],
+        images_dir: str
+    ) -> str:
+        """替换占位符为Markdown图片语法"""
+        import re
+
+        for placeholder_id, image_filename in mapping.items():
+            # 构建占位符正则
+            pattern = f'<!--\\s*IMAGE_PLACEHOLDER[^>]*id:\\s*{placeholder_id}[^>]*-->'
+
+            # 构建Markdown图片语法（使用相对路径）
+            image_path = os.path.join('images', image_filename)
+
+            replacement = f'\n![{image_filename}]({image_path})\n'
+
+            markdown = re.sub(pattern, replacement, markdown, flags=re.DOTALL)
+
+        return markdown
+
+    def _detect_duplicates(self, markdown: str) -> str:
+        """检测并移除重复内容"""
+        # TODO: 实现重复检测逻辑
+        return markdown
+
+    def _get_output_filename(self, input_path: str, output_dir: str) -> str:
+        """生成输出文件名"""
+        basename = Path(input_path).stem
+        return os.path.join(output_dir, f'{basename}.md')
+
+    def _save_metadata(
+        self,
+        output_dir: str,
+        input_path: str,
+        output_file: str,
+        total_images: int,
+        matched_images: int
+    ):
+        """保存元数据"""
+        import json
+        from datetime import datetime
+
+        metadata = {
+            'converter': 'UnifiedConverter',
+            'version': 'v4',
+            'timestamp': datetime.now().isoformat(),
+            'processing_time_seconds': self.stats.get('processing_time', 0),
+            'input_file': input_path,
+            'output_file': output_file,
+            'pdf_type': self.stats.get('pdf_type', 'unknown'),
+            'statistics': {
+                'total_images': total_images,
+                'matched_images': matched_images,
+                'stages_completed': self.stats.get('stages_completed', [])
+            }
+        }
+
+        meta_file = os.path.join(output_dir, 'meta.json')
+        with open(meta_file, 'w', encoding='utf-8') as f:
+            json.dump(metadata, f, ensure_ascii=False, indent=2)
+
+        self.logger.info(f"💾 元数据已保存: {meta_file}")

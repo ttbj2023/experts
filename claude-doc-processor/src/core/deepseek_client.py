@@ -73,7 +73,7 @@ class DeepSeekClient:
 
         # 构建prompt
         if prompt_template is None:
-            prompt_template = """你是一个智能文档处理助手，负责将图片占位符与实际图片进行语义匹配。
+            prompt_template = """你是一个智能文档处理助手，负责将图片占位符与实际图片进行语义匹配，并返回JSON格式的匹配结果。
 
 ## 任务说明
 我会给你：
@@ -153,6 +153,10 @@ class DeepSeekClient:
             placeholders_list=placeholders_text,
             images_list=images_text
         )
+
+        # 调试：打印prompt长度
+        logger.info(f"  Prompt长度: {len(prompt)} 字符")
+        logger.debug(f"  Prompt预览:\n{prompt[:500]}...")
 
         # 调用API
         try:
@@ -342,6 +346,12 @@ class DeepSeekClient:
             json=payload,
             timeout=timeout
         )
+
+        # 调试：打印错误详情
+        if response.status_code != 200:
+            logger.error(f"  API返回错误 {response.status_code}")
+            logger.error(f"  请求payload: {json.dumps(payload, ensure_ascii=False)[:500]}...")
+            logger.error(f"  响应内容: {response.text[:500]}")
 
         response.raise_for_status()
         result = response.json()
