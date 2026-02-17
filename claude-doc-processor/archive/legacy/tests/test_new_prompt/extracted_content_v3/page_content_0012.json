@@ -1,0 +1,169 @@
+{
+  "document_info": {
+    "source_file": "",
+    "total_pages": 1,
+    "processed_page": 12,
+    "processing_timestamp": "2026-02-15T20:25:02.352150"
+  },
+  "page_info": {
+    "page_id": "page_012",
+    "page_number": 12,
+    "page_size": {
+      "width": 1701,
+      "height": 2370,
+      "unit": "px"
+    },
+    "dpi": 200,
+    "rotation": 0
+  },
+  "elements": [
+    {
+      "element_id": "block_001",
+      "type": "content_block",
+      "read_order": 1,
+      "bbox": [
+        108,
+        88,
+        476,
+        135
+      ],
+      "layout_attr": {
+        "column": "left",
+        "cross_column": false,
+        "align": "left"
+      },
+      "confidence": {
+        "type_detection": 0.9,
+        "bbox_accuracy": 0.85
+      },
+      "metadata": {
+        "area": 17296,
+        "aspect_ratio": 7.829787234042553,
+        "position": "top"
+      },
+      "content": "<think>用户现在需要提取图片中的文字。首先看提供的图片内容是“输出文字：”，然后按照要求直接输出，不需要额外解释或格式调整？不过根据示例，可能图片里的文本就是“输出文字：”？不对，看用户提供的输入是图片中的文字，然后输出要按原文顺序。\n\n首先检查图片内容（用户提供的是“输出文字：”），所以直接输出这个。需要确认没有其他内容，保持换行和段落结构，但这里只有一行“输出文字：”。所以最终输出就是这个。</think>\n输出文字：",
+      "extraction_quality": {
+        "content_confidence": 0.8,
+        "formatting_preserved": true
+      }
+    },
+    {
+      "element_id": "block_002",
+      "type": "content_block",
+      "read_order": 2,
+      "bbox": [
+        108,
+        136,
+        489,
+        243
+      ],
+      "layout_attr": {
+        "column": "left",
+        "cross_column": false,
+        "align": "left"
+      },
+      "confidence": {
+        "type_detection": 0.9,
+        "bbox_accuracy": 0.85
+      },
+      "metadata": {
+        "area": 40767,
+        "aspect_ratio": 3.560747663551402,
+        "position": "top"
+      },
+      "content": "<think>用户现在需要提取图片中的所有文字，按照原文顺序输出。首先看提供的图片内容，图片里有“进球个数”以及下面的1和2。所以先检查图片里的元素：“进球个数”然后是表格里的1、2。根据要求直接输出，保持结构。\n\n首先看图片显示的内容：第一行可能有横线？不过主要文字部分，“进球个数”然后在下面单元格有1和2。所以提取的文字应该是“进球个数 1 2”？不对，看图片的结构，可能是表格形式，但用户要求按原文顺序输出，包括换行和段落结构。\n\n仔细看提供的示例图片内容：“进球个数 1 2”，不过图片中“进球个数”在一个单元格，“1”和“2”在另外两个单元格。所以按照看到的文字，先输出“进球个数”，然后是“1”，“2”？或者看图片中的排版，可能是：\n\n进球个数\n1   2\n\n但根据提供的图片内容，用户给出的示例图片显示的是“进球个数”下面一行有1和2，所以直接按顺序提取所有可见文字。\n\n现在确认：图片中的文字是“进球个数”、“1”、“2”，按照原文顺序输出。所以最终输出就是这些内容，保持换行或空格？不过看原始图片的结构，“进球个数”在一个蓝色背景的单元格，然后下面一行有1和2分别在两个单元格。所以按顺序提取的话：\n\n进球个数 1 2\n\n或者检查是否有换行。根据用户提供的示例图片描述，可能是：\n\n进球个数\n1   2\n\n但需要严格按照图片中的文字顺序。现在仔细看用户提供的图片内容（通过OCR模拟）：“进球个数”然后是“1”和“2”，所以直接输出。\n\n最终输出：</think>\n进球个数 1 2",
+      "extraction_quality": {
+        "content_confidence": 0.8,
+        "formatting_preserved": true
+      }
+    },
+    {
+      "element_id": "block_003",
+      "type": "content_block",
+      "read_order": 3,
+      "bbox": [
+        105,
+        240,
+        895,
+        925
+      ],
+      "layout_attr": {
+        "column": "left",
+        "cross_column": false,
+        "align": "left"
+      },
+      "confidence": {
+        "type_detection": 0.9,
+        "bbox_accuracy": 0.85
+      },
+      "metadata": {
+        "area": 541150,
+        "aspect_ratio": 1.1532846715328466,
+        "position": "top"
+      },
+      "content": "<think>用户给了一个图片OCR的任务，需要提取图片中的所有文字。首先，我需要仔细查看提供的图片内容描述。根据用户提供的图片内容，首先有一个表格，然后是文字部分。\n\n首先看表格部分：“进球个数”这一行，列标题是1、2、3、4、5、7，“人数”对应的数值分别是1、1、4、2、3、1。接下来是“这12名同学进球个数的众数是______。”然后是“正确解答：由于练习定点投篮进3个球出现了4人，出现的次数最多，故这组数据的众数”。\n\n接下来是教材问题部分，有“问题(教材P149)”下面写着“可以.不可以.”，然后“思考(教材P151)”，内容是“若听、说、读、写的成绩按照3∶3∶2∶2的比确定，则甲的平均成绩为85×3+78×3+85×2+73×2 / (3+3+2+2) =80.5（分），乙”。\n\n现在需要按原文顺序输出所有文字，保持换行和段落结构。需要注意表格中的内容是否正确提取，以及标点符号是否准确。\n\n首先检查表格部分：“进球个数 1 2 3 4 5 7”，然后“人数 1 1 4 2 3 1”。接下来是段落：“这12名同学进球个数的众数是______。”然后“正确解答：由于练习定点投篮进3个球出现了4人，出现的次数最多，故这组数据的众数”。\n\n然后教材问题部分：“问题(教材P149) 可以.不可以.”，注意这里的“可以.不可以.”是否正确，可能中间有标点。然后“思考(教材P151) 若听、说、读、写的成绩按照3∶3∶2∶2的比确定，则甲的平均成绩为 85×3+78×3+85×2+73×2 / (3+3+2+2)=80.5（分），乙”。\n\n需要确保没有遗漏任何文字，包括符号和数字。比如表格中的“进球个数”和“人数”，以及列标题的数字，还有公式部分是否正确。\n\n现在按照顺序输出，不添加任何解释或格式调整，只输出识别的文字。</think>\n进球个数 1 2 3 4 5 7  \n人 数 1 1 4 2 3 1  \n\n这12名同学进球个数的众数是______.  \n正确解答：由于练习定点投篮进3个球出现了4人，出现的次数最多，故这组数据的众数  \n\n教材问题  \n◇ 问题(教材P149)  \n可以.不可以.  \n◇ 思考(教材P151)  \n若听、说、读、写的成绩按照3∶3∶2∶2的比确定，则甲的平均成绩为  \n85×3+78×3+85×2+73×2 / (3+3+2+2)=80.5（分），乙",
+      "extraction_quality": {
+        "content_confidence": 0.8,
+        "formatting_preserved": true
+      }
+    },
+    {
+      "element_id": "block_004",
+      "type": "content_block",
+      "read_order": 4,
+      "bbox": [
+        471,
+        962,
+        528,
+        987
+      ],
+      "layout_attr": {
+        "column": "left",
+        "cross_column": false,
+        "align": "left"
+      },
+      "confidence": {
+        "type_detection": 0.9,
+        "bbox_accuracy": 0.85
+      },
+      "metadata": {
+        "area": 1425,
+        "aspect_ratio": 2.28,
+        "position": "middle"
+      },
+      "content": "<think>用户现在需要提取图片中的文字，根据提供的示例“3+80”？不对，看用户给出的图片内容是“3+80”吗？不，用户提供的内容是“输出文字： 3+80”？不对，看用户的输入。首先看用户的问题：“提取图片中的所有文字，按原文顺序输出。”然后用户给的示例输出应该是图片里的文字。\n\n现在看用户提供的图片相关内容，用户给出的图片显示的是“3+80”吗？不，看用户提供的“输出文字： 3+80”？不对，仔细看用户的输入。用户在系统提示里说“输出文字：”，然后后面是“3+80”？或者看用户提供的内容。\n\n哦，用户现在需要直接输出识别的文字，所以根据图片内容，应该是“3+80”。因为图片里的内容是“3+80”（可能前面有个空格？但按原文顺序，保持换行和段落结构。不过这里看起来是一行文字，所以输出“3+80”？）\n\n不对，再看用户提供的示例输入：“输出文字： 3+80”？不，用户的输入中，图片显示的内容是“3+80”，所以直接输出这个。\n\n现在按照要求，直接输出文字，不要任何解释，保持换行和段落结构。这里是一行，所以输出“3+80”。</think>\n3+80",
+      "extraction_quality": {
+        "content_confidence": 0.8,
+        "formatting_preserved": true
+      }
+    }
+  ],
+  "layout_info": {
+    "column_count": 1,
+    "has_header": false,
+    "has_footer": false
+  },
+  "processing_status": {
+    "success": true,
+    "warnings": [],
+    "errors": [],
+    "model_used": "glm-4.6v-flash"
+  },
+  "page_summary": {
+    "total_elements": 4,
+    "element_type_counts": {
+      "content_block": 4
+    },
+    "has_formulas": false,
+    "has_tables": false,
+    "has_images": false,
+    "word_count_estimate": 91
+  },
+  "extraction_log": {
+    "api_calls": 4,
+    "total_tokens": 0,
+    "processing_time": 0,
+    "retry_count": 0,
+    "failed_elements": []
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "input_file": "input_file/2025年江苏省宿迁市中考数学试卷.docx",
+  "output_dir": "output_docx_to_md_v2/2025年江苏省宿迁市中考数学试卷",
+  "pdf_conversion_success": true,
+  "pdf_conversion_time": 0.849104,
+  "md_conversion_success": true,
+  "md_conversion_time": 162.013437,
+  "total_images": 30,
+  "math_formula_images": 16,
+  "other_images": 14,
+  "removed_images": 16,
+  "processing_time": 215.801767,
+  "success": true,
+  "error": null
+}

@@ -1,0 +1,132 @@
+{
+  "document_info": {
+    "source_file": "",
+    "total_pages": 1,
+    "processed_page": 12,
+    "processing_timestamp": "2026-02-15T20:32:02.353412"
+  },
+  "page_info": {
+    "page_id": "page_012",
+    "page_number": 12,
+    "page_size": {
+      "width": 1701,
+      "height": 2370,
+      "unit": "px"
+    },
+    "dpi": 200,
+    "rotation": 0
+  },
+  "elements": [
+    {
+      "element_id": "block_001",
+      "type": "content_block",
+      "read_order": 1,
+      "bbox": [
+        697,
+        46,
+        892,
+        64
+      ],
+      "layout_attr": {
+        "column": "left",
+        "cross_column": false,
+        "align": "left"
+      },
+      "confidence": {
+        "type_detection": 0.9,
+        "bbox_accuracy": 0.85
+      },
+      "metadata": {
+        "area": 3510,
+        "aspect_ratio": 10.833333333333334,
+        "position": "top"
+      }
+    },
+    {
+      "element_id": "block_002",
+      "type": "content_block",
+      "read_order": 2,
+      "bbox": [
+        106,
+        88,
+        476,
+        135
+      ],
+      "layout_attr": {
+        "column": "left",
+        "cross_column": false,
+        "align": "left"
+      },
+      "confidence": {
+        "type_detection": 0.9,
+        "bbox_accuracy": 0.85
+      },
+      "metadata": {
+        "area": 17390,
+        "aspect_ratio": 7.872340425531915,
+        "position": "top"
+      }
+    },
+    {
+      "element_id": "block_003",
+      "type": "content_block",
+      "read_order": 3,
+      "bbox": [
+        116,
+        144,
+        892,
+        206
+      ],
+      "layout_attr": {
+        "column": "left",
+        "cross_column": false,
+        "align": "left"
+      },
+      "confidence": {
+        "type_detection": 0.9,
+        "bbox_accuracy": 0.85
+      },
+      "metadata": {
+        "area": 48112,
+        "aspect_ratio": 12.516129032258064,
+        "position": "top"
+      }
+    },
+    {
+      "element_id": "block_004",
+      "type": "content_block",
+      "read_order": 4,
+      "bbox": [
+        106,
+        244,
+        895,
+        925
+      ],
+      "layout_attr": {
+        "column": "left",
+        "cross_column": false,
+        "align": "left"
+      },
+      "confidence": {
+        "type_detection": 0.9,
+        "bbox_accuracy": 0.85
+      },
+      "metadata": {
+        "area": 537309,
+        "aspect_ratio": 1.158590308370044,
+        "position": "top"
+      }
+    }
+  ],
+  "layout_info": {
+    "column_count": 1,
+    "has_header": false,
+    "has_footer": false
+  },
+  "processing_status": {
+    "success": true,
+    "warnings": [],
+    "errors": [],
+    "model_used": "glm-4.6v-flash"
+  }
+}

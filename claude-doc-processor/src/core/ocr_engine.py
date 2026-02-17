@@ -46,7 +46,7 @@ class OCREngine:
             page_num: 页码（用于标记占位符来源）
             start_index: 起始索引（用于编号占位符）
             placeholder_pattern: 自定义占位符正则表达式（可选）
-                默认匹配: ![描述](IMAGE_PLACEHOLDER)
+                默认匹配: <!-- IMAGE_PLACEHOLDER\ntype: ...\ndescription: ...\n-->
 
         Returns:
             占位符列表: [{
@@ -58,23 +58,16 @@ class OCREngine:
             }, ...]
         """
         if placeholder_pattern is None:
-            # 默认匹配格式: ![图片类型：说明...](IMAGE_PLACEHOLDER)
-            placeholder_pattern = r'!\[(.*?)\]\(IMAGE_PLACEHOLDER\)'
+            # 默认匹配HTML注释格式（与v3脚本一致）
+            placeholder_pattern = r'<!--\s*IMAGE_PLACEHOLDER\s+type:\s*(.+?)\s*description:\s*(.+?)\s*-->'
 
         placeholders = []
-        matches = re.finditer(placeholder_pattern, markdown)
+        matches = re.finditer(placeholder_pattern, markdown, re.DOTALL)
 
         for i, match in enumerate(matches):
-            desc = match.group(1)
-
-            # 解析类型和描述
-            if '：' in desc or ':' in desc:
-                parts = re.split('[：:]', desc, 1)
-                img_type = parts[0].strip()
-                detailed_desc = parts[1].strip() if len(parts) > 1 else ''
-            else:
-                img_type = '图片'
-                detailed_desc = desc
+            # HTML注释格式：group(1)=type, group(2)=description
+            img_type = match.group(1).strip() if match.group(1) else '图片'
+            detailed_desc = match.group(2).strip() if match.group(2) else ''
 
             placeholders.append({
                 'index': start_index + i,

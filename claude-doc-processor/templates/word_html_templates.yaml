@@ -1,0 +1,632 @@
+# Word兼容HTML模板库
+# 基于docs/HTML_support_by_WORD.md规范的不可修改模板集合
+# 所有模板严格遵循HTML4.01 + CSS2.1子集，确保100% Word兼容
+
+# 模板版本
+template_version: "1.0.0"
+based_on_spec: "HTML_support_by_WORD.md"
+
+# ============================================================================
+# 全局HTML骨架（不可修改）
+# ============================================================================
+global_html_skeleton: |
+  <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+      <!-- 必须放在head最顶部，唯一解决中文乱码的方案 -->
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <!-- 文档标题，自动映射为Word文档标题属性 -->
+      <title>{{ document_title }}</title>
+
+      <!-- 全局CSS样式，仅使用HTML4.01 + CSS2.1子集 -->
+      <style type="text/css">
+          {{ global_css }}
+      </style>
+
+      <!-- 仅用于浏览器端公式渲染，Word会完全忽略JS执行 -->
+      <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+      </script>
+  </head>
+  <body>
+      <div id="page-container">
+          {{ main_content }}
+      </div>
+  </body>
+  </html>
+
+# ============================================================================
+# 全局CSS样式（严格限制在Word兼容范围内）
+# ============================================================================
+global_css_styles: |
+  /* 全局字体设置 - 仅使用Word内置字体 */
+  body {
+      font-family: "宋体", "Times New Roman", serif;
+      font-size: 10.5pt;
+      line-height: 1.6;
+      color: #000000;
+      margin: 0;
+      padding: 20pt 30pt;
+  }
+
+  /* 页面容器 */
+  #page-container {
+      width: 100%;
+      max-width: 210mm;  /* A4宽度 */
+      margin: 0 auto;
+  }
+
+  /* 主内容区 */
+  .main-content {
+      width: 100%;
+  }
+
+  /* 标题样式（h1-h6） - 映射为Word内置标题样式 */
+  h1, h2, h3, h4, h5, h6 {
+      font-family: "黑体", "SimHei", sans-serif;
+      font-weight: bold;
+      color: #000000;
+      margin: 12pt 0 6pt 0;
+      break-inside: avoid;  /* 防止标题被拆分 */
+  }
+
+  h1 {
+      font-size: 18pt;
+      text-align: center;
+  }
+
+  h2 {
+      font-size: 16pt;
+      text-align: left;
+  }
+
+  h3 {
+      font-size: 14pt;
+      text-align: left;
+  }
+
+  h4 {
+      font-size: 12pt;
+      text-align: left;
+  }
+
+  h5 {
+      font-size: 10.5pt;
+      text-align: left;
+  }
+
+  h6 {
+      font-size: 10.5pt;
+      text-align: left;
+  }
+
+  /* 正文段落 */
+  p {
+      font-size: 10.5pt;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      text-align: justify;
+      text-indent: 2em;  /* 首行缩进2字符 */
+  }
+
+  /* 特殊段落样式 */
+  p.no-indent {
+      text-indent: 0;  /* 无首行缩进 */
+  }
+
+  p.center-align {
+      text-align: center;
+      text-indent: 0;
+  }
+
+  p.right-align {
+      text-align: right;
+      text-indent: 0;
+  }
+
+  /* 有序列表 - 映射为Word原生可编辑列表 */
+  ol {
+      margin: 5pt 0 5pt 0;
+      padding-left: 2em;
+  }
+
+  ol li {
+      margin: 5pt 0;
+      text-align: justify;
+  }
+
+  /* 二级列表样式：(1)(2)(3)格式 */
+  ol li ol {
+      list-style-type: none;
+      margin: 4pt 0 4pt 15pt;
+      padding-left: 0;
+  }
+
+  /* 无序列表 */
+  ul {
+      margin: 5pt 0 5pt 0;
+      padding-left: 2em;
+  }
+
+  ul li {
+      margin: 5pt 0;
+      text-align: justify;
+  }
+
+  /* 表格样式 - 使用原生属性优先 */
+  table {
+      border-collapse: collapse;  /* 注意：Word兼容性有限，需配合原生border属性 */
+      margin: 10pt auto;
+      width: 100%;
+  }
+
+  /* 公式块样式 */
+  .formula-block {
+      margin: 8pt 0;
+      text-align: center;
+      break-inside: avoid;  /* 防止公式被拆分 */
+  }
+
+  /* 图片容器样式 */
+  .image-container {
+      text-align: center;
+      margin: 10pt 0;
+      break-inside: avoid;  /* 防止图片被拆分 */
+  }
+
+  /* 图注样式 */
+  .caption {
+      font-size: 9.5pt;
+      text-align: center;
+      color: #333;
+      margin: 5pt 0 10pt 0;
+      text-indent: 0;
+  }
+
+  /* 页眉页脚样式（用于标记，实际会被过滤） */
+  .page-header {
+      font-size: 9pt;
+      text-align: center;
+      color: #666;
+  }
+
+  .page-footer {
+      font-size: 9pt;
+      text-align: center;
+      color: #666;
+  }
+
+  /* 双栏布局 - Word原生分栏支持 */
+  .two-column {
+      column-count: 2;
+      column-gap: 24pt;
+      column-rule: 1pt solid #cce0f5;
+      margin: 10pt 0;
+  }
+
+  /* 防拆分元素（标题、图片、公式块、表格） */
+  h1, h2, h3, h4, h5, h6,
+  .image-container,
+  .formula-block,
+  table {
+      break-inside: avoid;
+  }
+
+  /* 行内格式 */
+  strong, b {
+      font-weight: bold;
+  }
+
+  em, i {
+      font-style: italic;
+  }
+
+  u {
+      text-decoration: underline;
+  }
+
+  s {
+      text-decoration: line-through;
+  }
+
+  sup {
+      font-size: smaller;
+      vertical-align: super;
+  }
+
+  sub {
+      font-size: smaller;
+      vertical-align: sub;
+  }
+
+  /* 页面控制 */
+  @page {
+      size: A4;
+      margin: 20pt 30pt;
+  }
+
+# ============================================================================
+# 元素级模板（使用Jinja2语法）
+# ============================================================================
+
+# 标题类模板
+title_h1: |
+  <h1 style="text-align: {{ align | default('center') }};">{{ content }}</h1>
+
+title_h2: |
+  <h2 style="text-align: {{ align | default('left') }};">{{ content }}</h2>
+
+title_h3: |
+  <h3 style="text-align: {{ align | default('left') }};">{{ content }}</h3>
+
+title_h4: |
+  <h4 style="text-align: {{ align | default('left') }};">{{ content }}</h4>
+
+title_h5: |
+  <h5 style="text-align: {{ align | default('left') }};">{{ content }}</h5>
+
+title_h6: |
+  <h6 style="text-align: {{ align | default('left') }};">{{ content }}</h6>
+
+# 正文段落模板
+paragraph: |
+  {% if layout_attr.align == 'center' %}
+  <p class="center-align">{{ content }}</p>
+  {% elif layout_attr.align == 'right' %}
+  <p class="right-align">{{ content }}</p>
+  {% else %}
+  <p>{{ content }}</p>
+  {% endif %}
+
+# 有序列表模板
+ordered_list: |
+  <ol type="{{ list_type }}" start="{{ start_num | default(1) }}">
+  {% for item in list_items %}
+    <li>
+      {{ item.content }}
+      {% if item.child_items and item.child_items | length > 0 %}
+      <ol type="{{ item.child_type | default('A') }}">
+      {% for child in item.child_items %}
+        <li>{{ child.content }}</li>
+      {% endfor %}
+      </ol>
+      {% endif %}
+    </li>
+  {% endfor %}
+  </ol>
+
+# 无序列表模板
+unordered_list: |
+  <ul type="{{ list_type | default('disc') }}">
+  {% for item in list_items %}
+    <li>
+      {{ item.content }}
+      {% if item.child_items and item.child_items | length > 0 %}
+      <ul type="{{ item.child_type | default('circle') }}">
+      {% for child in item.child_items %}
+        <li>{{ child.content }}</li>
+      {% endfor %}
+      </ul>
+      {% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+
+# 行内公式模板
+formula_inline: |
+  <script type="math/tex">{{ latex_code }}</script>
+
+# 块级公式模板
+formula_block: |
+  <div class="formula-block" style="text-align: {{ align | default('center') }};">
+      <script type="math/tex; mode=display">{{ latex_code }}</script>
+  </div>
+
+# 表格模板（支持合并单元格）
+table: |
+  <table border="{{ border_width | default('1') }}" cellpadding="{{ cell_padding | default('4') }}" cellspacing="0" width="100%">
+  {% if has_header %}
+  <thead>
+    <tr>
+    {% for header in table_data.headers %}
+      <th align="center" width="{{ 100 // table_data.headers | length }}%">{{ header }}</th>
+    {% endfor %}
+    </tr>
+  </thead>
+  {% endif %}
+  <tbody>
+  {% for row in table_data.rows %}
+    <tr>
+    {% for cell in row.cells %}
+      {% if cell.merged_cells and cell.merged_cells | length > 0 %}
+        {% for merge in cell.merged_cells %}
+          {% if merge.colspan > 1 %}
+          <td colspan="{{ merge.colspan }}" align="center">{{ cell.content }}</td>
+          {% elif merge.rowspan > 1 %}
+          <td rowspan="{{ merge.rowspan }}" align="center">{{ cell.content }}</td>
+          {% else %}
+          <td align="center">{{ cell }}</td>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <td align="center">{{ cell }}</td>
+      {% endif %}
+    {% endfor %}
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+
+# 图片模板（base64内嵌）
+image: |
+  <div class="image-container">
+      <p class="center-align">
+          <img
+              src="data:image/{{ format }};base64,{{ base64_data }}"
+              width="{{ width }}"
+              height="{{ height }}"
+              alt="{{ alt_text }}"
+          >
+      </p>
+  </div>
+  {% if caption_text %}
+  <p class="caption">{{ caption_text }}</p>
+  {% endif %}
+
+# 页眉模板（通常会被过滤，保留用于调试）
+header: |
+  <p class="page-header">{{ content }}</p>
+
+# 页脚模板（通常会被过滤，保留用于调试）
+footer: |
+  <p class="page-footer">{{ content }}</p>
+
+# 图注/表注模板
+caption: |
+  <p class="caption">{{ content }}</p>
+
+# ============================================================================
+# 特殊布局模板
+# ============================================================================
+
+# 双栏布局容器模板
+two_column_wrapper: |
+  <div class="two-column">
+      {{ column_content }}
+  </div>
+
+# 跨栏元素模板（放在双栏容器外）
+cross_column_element: |
+  {{ element_html }}
+
+# ============================================================================
+# 工具模板
+# ============================================================================
+
+# 首行缩进控制
+indent_control:
+  with_indent: "text-indent: 2em;"
+  without_indent: "text-indent: 0;"
+
+# 对齐方式控制
+alignment_control:
+  left: "text-align: left;"
+  center: "text-align: center;"
+  right: "text-align: right;"
+  justify: "text-align: justify;"
+
+# ============================================================================
+# 模板使用说明
+# ============================================================================
+template_usage_guide: |
+  ===============================================
+  Word兼容HTML模板使用说明
+  ===============================================
+
+  1. 模板语法：使用Jinja2语法
+     - 变量插值：{{ variable_name }}
+     - 条件判断：{% if condition %}...{% endif %}
+     - 循环：{% for item in items %}...{% endfor %}
+     - 默认值过滤器：{{ variable | default('default_value') }}
+
+  2. 模板渲染示例（Python）：
+     from jinja2 import Template
+
+     template = Template(self.templates['paragraph'])
+     html = template.render(
+         content="这是段落内容",
+         layout_attr={'align': 'center'}
+     )
+
+  3. 禁止事项：
+     - ❌ 禁止修改模板的HTML结构
+     - ❌ 禁止使用HTML5标签（<section>, <article>等）
+     - ❌ 禁止使用CSS3属性（flex, grid, border-radius等）
+     - ❌ 禁止使用外部资源链接
+     - ✅ 仅允许填充插槽内容（{{ content }}等）
+
+  4. 质量保证：
+     - 所有模板严格遵循HTML4.01 + CSS2.1子集
+     - 所有图片必须base64内嵌
+     - 所有公式必须用<script type="math/tex">标签
+     - 所有表格必须使用原生属性（border, cellpadding等）
+
+  5. 测试验证：
+     - 用Word 2016+打开生成的HTML
+     - 检查所有元素是否可编辑
+     - 检查公式双击是否可进入公式编辑器
+     - 检查另存为DOCX后格式是否保留
+
+# ============================================================================
+# 合规性检查规则
+# ============================================================================
+compliance_rules:
+  # 禁用标签检查
+  forbidden_tags:
+    - tag: "<section>"
+      reason: "HTML5语义化标签，Word不兼容"
+    - tag: "<article>"
+      reason: "HTML5语义化标签，Word不兼容"
+    - tag: "<header>"
+      reason: "HTML5语义化标签，Word不兼容"
+    - tag: "<footer>"
+      reason: "HTML5语义化标签，Word不兼容"
+    - tag: "<nav>"
+      reason: "HTML5语义化标签，Word不兼容"
+    - tag: "<figure>"
+      reason: "HTML5语义化标签，Word不兼容"
+    - tag: "<figcaption>"
+      reason: "HTML5语义化标签，Word不兼容"
+    - tag: "<video>"
+      reason: "多媒体标签，Word不兼容"
+    - tag: "<audio>"
+      reason: "多媒体标签，Word不兼容"
+    - tag: "<iframe>"
+      reason: "外部嵌入，Word不兼容"
+    - tag: "<canvas>"
+      reason: "HTML5画布，Word不兼容"
+    - tag: "<svg>"
+      reason: "老版本Word不兼容SVG"
+    - tag: "<form>"
+      reason: "表单标签，Word不兼容"
+    - tag: "<input>"
+      reason: "表单标签，Word不兼容"
+    - tag: "<select>"
+      reason: "表单标签，Word不兼容"
+    - tag: "<button>"
+      reason: "表单标签，Word不兼容"
+    - tag: "<textarea>"
+      reason: "表单标签，Word不兼容"
+
+  # 禁用CSS属性检查
+  forbidden_css:
+    - property: "display: flex"
+      reason: "CSS3布局，Word不兼容"
+      alternative: "使用float或column-count"
+    - property: "display: grid"
+      reason: "CSS3布局，Word不兼容"
+      alternative: "使用table布局"
+    - property: "position: absolute"
+      reason: "绝对定位，Word排版错乱"
+      alternative: "使用标准文档流"
+    - property: "position: fixed"
+      reason: "固定定位，Word不兼容"
+      alternative: "使用标准文档流"
+    - property: "border-radius"
+      reason: "CSS3圆角，Word不兼容"
+      alternative: "使用直角边框"
+    - property: "box-shadow"
+      reason: "CSS3阴影，Word不兼容"
+      alternative: "不使用阴影效果"
+    - property: "transform"
+      reason: "CSS3变换，Word不兼容"
+      alternative: "不使用变换"
+    - property: "transition"
+      reason: "CSS3过渡，Word不兼容"
+      alternative: "不使用过渡效果"
+    - property: "opacity"
+      reason: "CSS3透明度，Word不兼容"
+      alternative: "使用纯色"
+    - property: "rgba"
+      reason: "透明色，Word不兼容"
+      alternative: "使用十六进制颜色"
+    - property: "hsla"
+      reason: "透明色，Word不兼容"
+      alternative: "使用十六进制颜色"
+    - property: "linear-gradient"
+      reason: "CSS3渐变，Word不兼容"
+      alternative: "使用纯色背景"
+    - property: "radial-gradient"
+      reason: "CSS3渐变，Word不兼容"
+      alternative: "使用纯色背景"
+
+  # 必须遵守的规则
+  mandatory_rules:
+    - rule: "图片必须base64内嵌"
+      check: "所有<img>标签的src属性必须以'data:image/'开头"
+      penalty: "严重：Word打开必裂图"
+
+    - rule: "公式必须用<script type='math/tex'>标签"
+      check: "禁止使用图片替代公式"
+      penalty: "严重：公式无法编辑"
+
+    - rule: "表格必须使用原生属性"
+      check: "必须包含border、cellpadding、cellspacing属性"
+      penalty: "中等：表格样式丢失"
+
+    - rule: "禁止外部链接"
+      check: "所有资源必须内嵌，无http/https外部链接"
+      penalty: "严重：资源加载失败"
+
+    - rule: "必须使用UTF-8编码"
+      check: "<meta>标签必须声明charset=utf-8"
+      penalty: "严重：中文乱码"
+
+# ============================================================================
+# 模板测试用例
+# ============================================================================
+test_cases:
+  # 简单标题测试
+  simple_heading:
+    input:
+      type: "title_h1"
+      content: "第一章 引言"
+      align: "center"
+    expected_html: '<h1 style="text-align: center;">第一章 引言</h1>'
+
+  # 段落测试
+  simple_paragraph:
+    input:
+      type: "paragraph"
+      content: "这是正文段落，应该有首行缩进。"
+      layout_attr:
+        align: "justify"
+    expected_html: '<p>这是正文段落，应该有首行缩进。</p>'
+
+  # 行内公式测试
+  inline_formula:
+    input:
+      type: "formula_inline"
+      latex_code: "E = mc^2"
+    expected_html: '<script type="math/tex">E = mc^2</script>'
+
+  # 块级公式测试
+  block_formula:
+    input:
+      type: "formula_block"
+      latex_code: "\\int_0^1 x^2 dx = \\frac{1}{3}"
+      align: "center"
+    expected_html: |
+      <div class="formula-block" style="text-align: center;">
+          <script type="math/tex; mode=display">\int_0^1 x^2 dx = \frac{1}{3}</script>
+      </div>
+
+  # 表格测试
+  simple_table:
+    input:
+      type: "table"
+      has_header: true
+      border_width: "1"
+      cell_padding: "4"
+      table_data:
+        headers: ["姓名", "年龄", "成绩"]
+        rows:
+          - cells: ["张三", "18", "95"]
+          - cells: ["李四", "19", "87"]
+    expected_html_contains: ['<table border="1"', '<thead>', '<th>姓名</th>', '<tbody>']
+
+  # 列表测试
+  ordered_list:
+    input:
+      type: "ordered_list"
+      list_type: "1"
+      start_num: 1
+      list_items:
+        - item_id: "li_001"
+          content: "第一题"
+          child_items: []
+        - item_id: "li_002"
+          content: "第二题"
+          child_items: []
+    expected_html_contains: ['<ol type="1" start="1">', '<li>第一题</li>', '<li>第二题</li>', '</ol>']

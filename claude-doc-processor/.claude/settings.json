@@ -1,0 +1,16 @@
+{
+  "enabledMcpJsonServers": [
+    "zhipu-vision"
+  ],
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Bash(pandoc:*)",
+      "Bash(./scripts/*)",
+      "mcp__zhipu-vision__*"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

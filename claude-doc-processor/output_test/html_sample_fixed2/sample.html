@@ -1,0 +1,571 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>转换生成文档</title>
+    <script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <style type="text/css">
+        /* ==================== 全局样式 ==================== */
+        body {
+            font-family: '宋体', 'Times New Roman', serif;
+            font-size: 10.5pt;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20pt 30pt;
+        }
+
+        /* ==================== 标题样式 ==================== */
+        h1 {
+            font-size: 18pt;
+            font-weight: bold;
+            margin: 12pt 0;
+            page-break-after: avoid;
+        }
+
+        h2 {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 10pt 0;
+            page-break-after: avoid;
+        }
+
+        h3 {
+            font-size: 14pt;
+            font-weight: bold;
+            margin: 8pt 0;
+            page-break-after: avoid;
+        }
+
+        h4 {
+            font-size: 12pt;
+            font-weight: bold;
+            margin: 6pt 0;
+            page-break-after: avoid;
+        }
+
+        h5 {
+            font-size: 11pt;
+            font-weight: bold;
+            margin: 5pt 0;
+        }
+
+        h6 {
+            font-size: 10pt;
+            font-weight: bold;
+            margin: 4pt 0;
+        }
+
+        /* ==================== 段落样式 ==================== */
+        p {
+            margin: 5pt 0;
+            text-indent: 2em;
+        }
+
+        p.no-indent {
+            text-indent: 0;
+        }
+
+        /* ==================== 文本样式 ==================== */
+        strong, b {
+            font-weight: bold;
+        }
+
+        em, i {
+            font-style: italic;
+        }
+
+        u {
+            text-decoration: underline;
+        }
+
+        s {
+            text-decoration: line-through;
+        }
+
+        sup {
+            font-size: 0.7em;
+            vertical-align: super;
+        }
+
+        sub {
+            font-size: 0.7em;
+            vertical-align: sub;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            background-color: #f5f5f5;
+            padding: 2pt 4pt;
+        }
+
+        /* ==================== 列表样式 ==================== */
+        ul, ol {
+            margin: 5pt 0;
+            padding-left: 20pt;
+        }
+
+        li {
+            margin: 3pt 0;
+        }
+
+        /* 二级列表缩进 */
+        ul ul, ol ol, ul ol, ol ul {
+            margin: 3pt 0 3pt 15pt;
+        }
+
+        /* ==================== 表格样式 ==================== */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10pt 0;
+        }
+
+        td, th {
+            border: 1px solid #000;
+            padding: 4pt;
+            text-align: center;
+        }
+
+        th {
+            font-weight: bold;
+            background-color: #f0f0f0;
+        }
+
+        /* ==================== 图片样式 ==================== */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10pt auto;
+        }
+
+        .figure {
+            text-align: center;
+            margin: 10pt 0;
+            break-inside: avoid;
+        }
+
+        .figure-caption {
+            text-align: center;
+            font-size: 9.5pt;
+            margin: 5pt 0;
+            text-indent: 0;
+        }
+
+        /* ==================== 公式样式 ==================== */
+        .formula-block {
+            margin: 8pt 0;
+            text-align: center;
+            break-inside: avoid;
+        }
+
+        /* ==================== 代码块样式 ==================== */
+        pre {
+            background-color: #f5f5f5;
+            padding: 10pt;
+            margin: 10pt 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            break-inside: avoid;
+        }
+
+        /* ==================== 多栏布局 ==================== */
+        .two-column {
+            column-count: 2;
+            column-gap: 24pt;
+            column-rule: 1pt solid #cce0f5;
+            margin: 10pt 0;
+        }
+
+        .three-column {
+            column-count: 3;
+            column-gap: 20pt;
+            column-rule: 1pt solid #cce0f5;
+            margin: 10pt 0;
+        }
+
+        /* ==================== 引用块样式 ==================== */
+        blockquote {
+            margin: 10pt 20pt;
+            padding-left: 10pt;
+            border-left: 3pt solid #ccc;
+            color: #666;
+        }
+
+        /* ==================== 水平分隔线 ==================== */
+        hr {
+            border: none;
+            border-top: 1pt solid #ccc;
+            margin: 15pt 0;
+        }
+
+        /* ==================== 页面控制 ==================== */
+        @page {
+            size: A4;
+            margin: 20pt 30pt;
+        }
+
+        /* 防止元素被拆分 */
+        .no-break {
+            break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+<div style="break-inside: avoid;">
+    <h1>Markdown 转 Word 兼容 HTML 示例</h1>
+</div>
+
+<div style="break-inside: avoid;">
+    <h2>文档说明</h2>
+</div>
+
+<p>这是一个示例 Markdown 文件，展示了所有支持的功能特性。转换后的 HTML 文件可以用 Microsoft Word 打开，并另存为 DOCX 格式。</p>
+
+<hr>
+
+<div style="break-inside: avoid;">
+    <h2>1. 基础文本格式</h2>
+</div>
+
+<div style="break-inside: avoid;">
+    <h3>1.1 文本样式</h3>
+</div>
+
+<p>这是 <strong>粗体文本</strong>，这是 <em>斜体文本</em>，这是 <strong><em>粗斜体文本</em></strong>。</p>
+
+<p>这是 ~~删除线文本~~（注：Markdown标准删除线）。</p>
+
+<p>这是 {CODE:行内代码} 示例。</p>
+
+<p>上标示例：E=mc^2^，下标示例：H~2~O（注：扩展语法）。</p>
+
+<div style="break-inside: avoid;">
+    <h3>1.2 引用块</h3>
+</div>
+
+<blockquote>这是一段引用文本。 可以有多行。  —— 引用来源</blockquote>
+
+<hr>
+
+<div style="break-inside: avoid;">
+    <h2>2. 列表</h2>
+</div>
+
+<div style="break-inside: avoid;">
+    <h3>2.1 无序列表</h3>
+</div>
+
+<ul>
+    <li>第一项</li>
+    <li>第二项</li>
+    <li>嵌套项目 A</li>
+    <li>嵌套项目 B</li>
+    <li>第三项</li>
+</ul>
+
+<div style="break-inside: avoid;">
+    <h3>2.2 有序列表</h3>
+</div>
+
+<ol>
+    <li>第一项</li>
+    <li>第二项</li>
+    <li>第三项</li>
+</ol>
+
+<div style="break-inside: avoid;">
+    <h3>2.3 教辅题目示例</h3>
+</div>
+
+<ol>
+    <li>下列说法正确的是（）</li>
+</ol>
+
+<p>   A. 选项内容A    B. 选项内容B    C. 选项内容C    D. 选项内容D</p>
+
+<ol>
+    <li>计算题</li>
+</ol>
+
+<p>   (1) 第一步：计算平均数    (2) 第二步：计算方差</p>
+
+<hr>
+
+<div style="break-inside: avoid;">
+    <h2>3. 数学公式</h2>
+</div>
+
+<div style="break-inside: avoid;">
+    <h3>3.1 行内公式</h3>
+</div>
+
+<p>方差计算公式为 <script type="math/tex">s^2 = \frac{1}{n}\sum_{i=1}^n (x_i-\overline{x})^2</script>。</p>
+
+<p>欧拉公式：<script type="math/tex">e^{i\pi} + 1 = 0</script>。</p>
+
+<div style="break-inside: avoid;">
+    <h3>3.2 块级公式</h3>
+</div>
+
+<p>二次方程求根公式：</p>
+
+<p><script type="math/tex; mode=display">x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}</script></p>
+
+<p>定积分示例：</p>
+
+<p><script type="math/tex; mode=display">\int_{a}^{b} f(x) dx = F(b) - F(a)</script></p>
+
+<p>矩阵示例：</p>
+
+<p><script type="math/tex; mode=display">\begin{pmatrix} a & b \\ c & d \end{pmatrix}</script></p>
+
+<hr>
+
+<div style="break-inside: avoid;">
+    <h2>4. 表格</h2>
+</div>
+
+<div style="break-inside: avoid;">
+    <h3>4.1 简单表格</h3>
+</div>
+
+<table border="1" cellpadding="4" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th align="center">姓名</th>
+            <th align="center">年龄</th>
+            <th align="center">职业</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td align="center">张三</td>
+            <td align="center">25</td>
+            <td align="center">工程师</td>
+        </tr>
+        <tr>
+            <td align="center">李四</td>
+            <td align="center">30</td>
+            <td align="center">设计师</td>
+        </tr>
+        <tr>
+            <td align="center">王五</td>
+            <td align="center">28</td>
+            <td align="center">产品经理</td>
+        </tr>
+    </tbody>
+</table>
+
+<div style="break-inside: avoid;">
+    <h3>4.2 教辅数据表</h3>
+</div>
+
+<table border="1" cellpadding="4" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th align="center">组别</th>
+            <th align="center">平均数</th>
+            <th align="center">方差</th>
+            <th align="center">极差</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td align="center">A组</td>
+            <td align="center">4℃</td>
+            <td align="center">127.25</td>
+            <td align="center">8</td>
+        </tr>
+        <tr>
+            <td align="center">B组</td>
+            <td align="center">20℃</td>
+            <td align="center">53.1875</td>
+            <td align="center">5</td>
+        </tr>
+        <tr>
+            <td align="center">C组</td>
+            <td align="center">15℃</td>
+            <td align="center">89.5</td>
+            <td align="center">7</td>
+        </tr>
+    </tbody>
+</table>
+
+<hr>
+
+<div style="break-inside: avoid;">
+    <h2>5. 代码块</h2>
+</div>
+
+<div style="break-inside: avoid;">
+    <h3>5.1 Python 代码</h3>
+</div>
+
+<pre>def calculate_variance(data):
+    """计算方差"""
+    n = len(data)
+    mean = sum(data) / n
+    variance = sum((x - mean) ** 2 for x in data) / n
+    return variance
+
+# 示例使用
+data = [4, 8, 6, 5, 3]
+result = calculate_variance(data)
+print(f"方差: {result}")</pre>
+
+<div style="break-inside: avoid;">
+    <h3>5.2 JavaScript 代码</h3>
+</div>
+
+<pre>function calculateSum(arr) {
+    return arr.reduce((sum, num) =&gt; sum + num, 0);
+}
+
+// 示例
+const numbers = [1, 2, 3, 4, 5];
+const total = calculateSum(numbers);
+console.log(`总和: ${total}`);</pre>
+
+<hr>
+
+<div style="break-inside: avoid;">
+    <h2>6. 多栏布局（示例）</h2>
+</div>
+
+<div class="2-column">
+    <p class="no-indent">
+**左栏内容**
+
+这里是第一栏的文字内容。可以包含题目、说明等。例如：
+
+1. 题目一
+2. 题目二
+3. 题目三
+
+**右栏内容**
+
+这里是第二栏的文字内容。可以包含答案、解析等。例如：
+
+- 答案一：解析内容
+- 答案二：解析内容
+- 答案三：解析内容
+</p>
+</div>
+
+<hr>
+
+<div style="break-inside: avoid;">
+    <h2>7. 水平分隔线</h2>
+</div>
+
+<p>上面是章节内容。</p>
+
+<hr>
+
+<p>下面是新章节。</p>
+
+<hr>
+
+<div style="break-inside: avoid;">
+    <h2>8. 使用说明</h2>
+</div>
+
+<div style="break-inside: avoid;">
+    <h3>转换步骤</h3>
+</div>
+
+<ol>
+    <li>使用转换命令：</li>
+</ol>
+
+<pre>   ./convert-md-to-html.py sample.md -o output/</pre>
+
+<ol>
+    <li>用 Microsoft Word 打开生成的 HTML 文件：</li>
+</ol>
+
+<ul>
+    <li>输出路径：{CODE:output/sample.html}</li>
+</ul>
+
+<ol>
+    <li>检查排版、公式、图片是否正常</li>
+</ol>
+
+<ol>
+    <li>文件 → 另存为 → 选择 {CODE:.docx} 格式</li>
+</ol>
+
+<ol>
+    <li>完成！DOCX 文件可直接编辑</li>
+</ol>
+
+<div style="break-inside: avoid;">
+    <h3>支持的特性</h3>
+</div>
+
+<ul>
+    <li>✅ HTML 4.01 + CSS 2.1 完全兼容</li>
+    <li>✅ Base64 内嵌图片（无裂图）</li>
+    <li>✅ MathJax 公式（可编辑）</li>
+    <li>✅ 多栏布局</li>
+    <li>✅ 复杂表格</li>
+    <li>✅ 多层列表</li>
+    <li>✅ 代码块</li>
+</ul>
+
+<hr>
+
+<div style="break-inside: avoid;">
+    <h2>附录：测试数据</h2>
+</div>
+
+<div style="break-inside: avoid;">
+    <h3>统计数据</h3>
+</div>
+
+<table border="1" cellpadding="4" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th align="center">指标</th>
+            <th align="center">数值</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td align="center">页数</td>
+            <td align="center">1</td>
+        </tr>
+        <tr>
+            <td align="center">字数</td>
+            <td align="center">约 1500</td>
+        </tr>
+        <tr>
+            <td align="center">公式数</td>
+            <td align="center">5</td>
+        </tr>
+        <tr>
+            <td align="center">表格数</td>
+            <td align="center">2</td>
+        </tr>
+        <tr>
+            <td align="center">代码块数</td>
+            <td align="center">2</td>
+        </tr>
+    </tbody>
+</table>
+
+<div style="break-inside: avoid;">
+    <h3>联系方式</h3>
+</div>
+
+<p>如有问题，请参考项目文档。</p>
+
+<hr>
+
+<p><strong>文档结束</strong></p>
+
+</body></html>

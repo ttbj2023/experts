@@ -1,0 +1,17 @@
+{
+  "converter": "DOCXConverter",
+  "timestamp": "2026-02-17T21:17:37.221189",
+  "processing_time_seconds": 0,
+  "input_file": "input_file/2025年江苏省南通市中考数学试卷.docx",
+  "output_file": "output_test/docx_html_comment_format/2025年江苏省南通市中考数学试卷.md",
+  "statistics": {
+    "total_images": 16,
+    "matched_images": 7,
+    "stages_completed": [
+      "Stage 1: OCR + 占位符",
+      "Stage 2: GLM图片描述",
+      "Stage 3: DeepSeek语义匹配",
+      "Stage 4: 智能占位符替换"
+    ]
+  }
+}

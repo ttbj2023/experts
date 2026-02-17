@@ -1,0 +1,16 @@
+{
+  "input_file": "input_file/2025年江苏省南京市中考数学试卷.docx",
+  "output_dir": "output_test_with_raw/2025年江苏省南京市中考数学试卷",
+  "pdf_conversion_success": true,
+  "pdf_conversion_time": 0.742056,
+  "md_conversion_success": true,
+  "md_conversion_time": 150.079045,
+  "total_images": 12,
+  "filtered_small_images": 18,
+  "math_formula_images": 0,
+  "other_images": 12,
+  "removed_images": 0,
+  "processing_time": 150.862972,
+  "success": true,
+  "error": null
+}

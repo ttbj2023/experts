@@ -1,0 +1,272 @@
+[
+  {
+    "index": 1,
+    "filename": "image1.png",
+    "path": "output_all_images_analysis/images/image1.png",
+    "width": 23,
+    "height": 35,
+    "size": 1069,
+    "content_type": "image/png"
+  },
+  {
+    "index": 2,
+    "filename": "image2.png",
+    "path": "output_all_images_analysis/images/image2.png",
+    "width": 13,
+    "height": 35,
+    "size": 771,
+    "content_type": "image/png"
+  },
+  {
+    "index": 3,
+    "filename": "image3.png",
+    "path": "output_all_images_analysis/images/image3.png",
+    "width": 29,
+    "height": 37,
+    "size": 1362,
+    "content_type": "image/png"
+  },
+  {
+    "index": 4,
+    "filename": "image4.png",
+    "path": "output_all_images_analysis/images/image4.png",
+    "width": 71,
+    "height": 35,
+    "size": 2046,
+    "content_type": "image/png"
+  },
+  {
+    "index": 5,
+    "filename": "image5.png",
+    "path": "output_all_images_analysis/images/image5.png",
+    "width": 614,
+    "height": 164,
+    "size": 23261,
+    "content_type": "image/png"
+  },
+  {
+    "index": 6,
+    "filename": "image6.png",
+    "path": "output_all_images_analysis/images/image6.png",
+    "width": 944,
+    "height": 885,
+    "size": 66079,
+    "content_type": "image/png"
+  },
+  {
+    "index": 7,
+    "filename": "image7.png",
+    "path": "output_all_images_analysis/images/image7.png",
+    "width": 156,
+    "height": 18,
+    "size": 3495,
+    "content_type": "image/png"
+  },
+  {
+    "index": 8,
+    "filename": "image8.png",
+    "path": "output_all_images_analysis/images/image8.png",
+    "width": 86,
+    "height": 35,
+    "size": 2702,
+    "content_type": "image/png"
+  },
+  {
+    "index": 9,
+    "filename": "image9.png",
+    "path": "output_all_images_analysis/images/image9.png",
+    "width": 481,
+    "height": 447,
+    "size": 37632,
+    "content_type": "image/png"
+  },
+  {
+    "index": 10,
+    "filename": "image10.png",
+    "path": "output_all_images_analysis/images/image10.png",
+    "width": 44,
+    "height": 35,
+    "size": 1776,
+    "content_type": "image/png"
+  },
+  {
+    "index": 11,
+    "filename": "image11.png",
+    "path": "output_all_images_analysis/images/image11.png",
+    "width": 47,
+    "height": 46,
+    "size": 2382,
+    "content_type": "image/png"
+  },
+  {
+    "index": 12,
+    "filename": "image12.png",
+    "path": "output_all_images_analysis/images/image12.png",
+    "width": 594,
+    "height": 322,
+    "size": 29281,
+    "content_type": "image/png"
+  },
+  {
+    "index": 13,
+    "filename": "image13.png",
+    "path": "output_all_images_analysis/images/image13.png",
+    "width": 31,
+    "height": 35,
+    "size": 1430,
+    "content_type": "image/png"
+  },
+  {
+    "index": 14,
+    "filename": "image14.png",
+    "path": "output_all_images_analysis/images/image14.png",
+    "width": 13,
+    "height": 36,
+    "size": 784,
+    "content_type": "image/png"
+  },
+  {
+    "index": 15,
+    "filename": "image15.png",
+    "path": "output_all_images_analysis/images/image15.png",
+    "width": 437,
+    "height": 350,
+    "size": 32986,
+    "content_type": "image/png"
+  },
+  {
+    "index": 16,
+    "filename": "image16.png",
+    "path": "output_all_images_analysis/images/image16.png",
+    "width": 276,
+    "height": 258,
+    "size": 24269,
+    "content_type": "image/png"
+  },
+  {
+    "index": 17,
+    "filename": "image17.png",
+    "path": "output_all_images_analysis/images/image17.png",
+    "width": 88,
+    "height": 43,
+    "size": 3176,
+    "content_type": "image/png"
+  },
+  {
+    "index": 18,
+    "filename": "image18.png",
+    "path": "output_all_images_analysis/images/image18.png",
+    "width": 646,
+    "height": 279,
+    "size": 13628,
+    "content_type": "image/png"
+  },
+  {
+    "index": 19,
+    "filename": "image19.png",
+    "path": "output_all_images_analysis/images/image19.png",
+    "width": 22,
+    "height": 41,
+    "size": 1186,
+    "content_type": "image/png"
+  },
+  {
+    "index": 20,
+    "filename": "image20.png",
+    "path": "output_all_images_analysis/images/image20.png",
+    "width": 22,
+    "height": 41,
+    "size": 1170,
+    "content_type": "image/png"
+  },
+  {
+    "index": 21,
+    "filename": "image21.png",
+    "path": "output_all_images_analysis/images/image21.png",
+    "width": 1087,
+    "height": 530,
+    "size": 58030,
+    "content_type": "image/png"
+  },
+  {
+    "index": 22,
+    "filename": "image22.png",
+    "path": "output_all_images_analysis/images/image22.png",
+    "width": 413,
+    "height": 84,
+    "size": 22874,
+    "content_type": "image/png"
+  },
+  {
+    "index": 23,
+    "filename": "image23.png",
+    "path": "output_all_images_analysis/images/image23.png",
+    "width": 612,
+    "height": 349,
+    "size": 34406,
+    "content_type": "image/png"
+  },
+  {
+    "index": 24,
+    "filename": "image24.png",
+    "path": "output_all_images_analysis/images/image24.png",
+    "width": 13,
+    "height": 35,
+    "size": 769,
+    "content_type": "image/png"
+  },
+  {
+    "index": 25,
+    "filename": "image25.png",
+    "path": "output_all_images_analysis/images/image25.png",
+    "width": 586,
+    "height": 386,
+    "size": 63965,
+    "content_type": "image/png"
+  },
+  {
+    "index": 26,
+    "filename": "image26.png",
+    "path": "output_all_images_analysis/images/image26.png",
+    "width": 72,
+    "height": 18,
+    "size": 1872,
+    "content_type": "image/png"
+  },
+  {
+    "index": 27,
+    "filename": "image27.png",
+    "path": "output_all_images_analysis/images/image27.png",
+    "width": 603,
+    "height": 691,
+    "size": 40782,
+    "content_type": "image/png"
+  },
+  {
+    "index": 28,
+    "filename": "image28.png",
+    "path": "output_all_images_analysis/images/image28.png",
+    "width": 1417,
+    "height": 620,
+    "size": 82475,
+    "content_type": "image/png"
+  },
+  {
+    "index": 29,
+    "filename": "image29.png",
+    "path": "output_all_images_analysis/images/image29.png",
+    "width": 18,
+    "height": 20,
+    "size": 860,
+    "content_type": "image/png"
+  },
+  {
+    "index": 30,
+    "filename": "image30.png",
+    "path": "output_all_images_analysis/images/image30.png",
+    "width": 18,
+    "height": 20,
+    "size": 868,
+    "content_type": "image/png"
+  }
+]

@@ -18,6 +18,7 @@ Word 兼容 HTML 生成器
 """
 
 import os
+import re
 from typing import Dict, List, Any
 from .image_base64_encoder import ImageBase64Encoder
 
@@ -457,7 +458,7 @@ class WordHTMLGenerator:
         content = paragraph.get('content', '')
         elements = paragraph.get('elements', [])
 
-        # 替换公式标记
+        # 替换公式占位符为 Word 兼容的 <script> 标签
         for element in elements:
             if element.get('type') == 'formula':
                 mode = element.get('mode', 'inline')
@@ -466,13 +467,14 @@ class WordHTMLGenerator:
                 if mode == 'display':
                     # 块级公式
                     formula_html = f'<script type="math/tex; mode=display">{formula}</script>'
-                    # 替换原始占位符
-                    placeholder = f'{{{{FORMULA_DISPLAY:{formula}}}}}'
+                    # 直接字符串替换（公式内容保持原样，不转义）
+                    placeholder = f'{{FORMULA_DISPLAY:{formula}}}'
                     content = content.replace(placeholder, formula_html)
                 else:
                     # 行内公式
                     formula_html = f'<script type="math/tex">{formula}</script>'
-                    placeholder = f'{{{{FORMULA_INLINE:{formula}}}}}'
+                    # 直接字符串替换（公式内容保持原样，不转义）
+                    placeholder = f'{{FORMULA_INLINE:{formula}}}'
                     content = content.replace(placeholder, formula_html)
 
         html = f'<p>{content}</p>\n'

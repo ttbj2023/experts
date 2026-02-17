@@ -1,0 +1,15 @@
+{
+  "input_file": "input_file/2025年江苏省淮安市中考数学试卷.docx",
+  "output_dir": "output_docx_to_md_v2/2025年江苏省淮安市中考数学试卷",
+  "pdf_conversion_success": true,
+  "pdf_conversion_time": 0.9325,
+  "md_conversion_success": true,
+  "md_conversion_time": 183.557595,
+  "total_images": 40,
+  "math_formula_images": 19,
+  "other_images": 21,
+  "removed_images": 19,
+  "processing_time": 285.109178,
+  "success": true,
+  "error": null
+}

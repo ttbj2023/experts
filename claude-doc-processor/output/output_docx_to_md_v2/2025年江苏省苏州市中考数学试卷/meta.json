@@ -1,0 +1,15 @@
+{
+  "input_file": "input_file/2025年江苏省苏州市中考数学试卷.docx",
+  "output_dir": "output_docx_to_md_v2/2025年江苏省苏州市中考数学试卷",
+  "pdf_conversion_success": true,
+  "pdf_conversion_time": 0.769906,
+  "md_conversion_success": true,
+  "md_conversion_time": 167.853172,
+  "total_images": 29,
+  "math_formula_images": 12,
+  "other_images": 17,
+  "removed_images": 12,
+  "processing_time": 221.814207,
+  "success": true,
+  "error": null
+}

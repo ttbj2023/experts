@@ -1,0 +1,18 @@
+{
+  "input_file": "/mnt/wsl/PHYSICALDRIVE2/assistant-experts/claude-doc-processor/input_file/2025年江苏省无锡市中考数学试卷.docx",
+  "output_dir": "/mnt/wsl/PHYSICALDRIVE2/assistant-experts/claude-doc-processor/output_docx_to_md/2025年江苏省无锡市中考数学试卷",
+  "total_images": 40,
+  "extracted_images": 29,
+  "total_formulas": 0,
+  "converted_formulas": 0,
+  "fallback_images": 0,
+  "processing_time": 1.25524,
+  "success": true,
+  "error": null,
+  "omml_conversion": {
+    "total": 0,
+    "success": 0,
+    "failed": 0,
+    "fallback_to_image": 0
+  }
+}

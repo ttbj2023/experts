@@ -1,0 +1,15 @@
+{
+  "input_file": "input_file/2025年江苏省盐城市中考数学试卷.docx",
+  "output_dir": "output_docx_to_md_v2/2025年江苏省盐城市中考数学试卷",
+  "pdf_conversion_success": true,
+  "pdf_conversion_time": 0.724993,
+  "md_conversion_success": true,
+  "md_conversion_time": 278.176722,
+  "total_images": 33,
+  "math_formula_images": 0,
+  "other_images": 19,
+  "removed_images": 14,
+  "processing_time": 278.939315,
+  "success": true,
+  "error": null
+}

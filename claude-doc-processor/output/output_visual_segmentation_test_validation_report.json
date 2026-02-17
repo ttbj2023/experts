@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-02-15T20:32:34.228207",
+  "validation_result": {
+    "passed": false,
+    "issues": [
+      "发现外部链接: 2个（仅允许MathJax CDN）"
+    ],
+    "warnings": [],
+    "stats": {
+      "total_formulas": 0,
+      "total_images": 0,
+      "html_size": 8094
+    }
+  }
+}

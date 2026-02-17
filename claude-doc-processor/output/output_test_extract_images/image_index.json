@@ -1,0 +1,34 @@
+{
+  "source_pdf": "input_file/image_text.pdf",
+  "total_images": 2,
+  "images": [
+    {
+      "page": 1,
+      "index": 1,
+      "filename": "page_001_img_01.png",
+      "path": "./output_test_extract_images/extracted_images/page_001_img_01.png",
+      "bbox": [
+        50,
+        388,
+        463,
+        684
+      ],
+      "type": "地图",
+      "description": "唐代茶区分布图（局部）"
+    },
+    {
+      "page": 2,
+      "index": 1,
+      "filename": "page_002_img_01.png",
+      "path": "./output_test_extract_images/extracted_images/page_002_img_01.png",
+      "bbox": [
+        45,
+        710,
+        447,
+        908
+      ],
+      "type": "地图",
+      "description": "中国现代茶区示意图"
+    }
+  ]
+}

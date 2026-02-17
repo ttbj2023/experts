@@ -1,0 +1,15 @@
+{
+  "input_file": "input_file/2025年江苏省镇江市中考数学试卷.docx",
+  "output_dir": "output_docx_to_md_v2/2025年江苏省镇江市中考数学试卷",
+  "pdf_conversion_success": true,
+  "pdf_conversion_time": 0.813222,
+  "md_conversion_success": true,
+  "md_conversion_time": 203.39965,
+  "total_images": 39,
+  "math_formula_images": 0,
+  "other_images": 18,
+  "removed_images": 21,
+  "processing_time": 204.254861,
+  "success": true,
+  "error": null
+}

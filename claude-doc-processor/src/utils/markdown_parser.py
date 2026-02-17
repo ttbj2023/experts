@@ -67,7 +67,18 @@ class MarkdownParser:
 
         # 解析各个元素
         i = 0
+        last_i = -1  # 防御性检查：记录上一次的索引，用于检测死循环
+
         while i < len(lines):
+            # 防御性检查：检测索引停滞（死循环保护）
+            if i == last_i:
+                raise ValueError(
+                    f"解析器卡死在第 {i+1} 行: {repr(lines[i])}\n"
+                    f"这表明元素检测逻辑存在BUG，导致索引无法推进。\n"
+                    f"请检查该行内容是否符合预期的元素格式。"
+                )
+            last_i = i
+
             line = lines[i]
             line_stripped = line.strip()
 
@@ -96,18 +107,19 @@ class MarkdownParser:
                 i = self._parse_heading(lines, i, result['sections'])
                 continue
 
-            # 检测列表
-            if line_stripped.startswith(('-', '*', '+')) or re.match(r'^\d+\.', line_stripped):
-                i = self._parse_list(lines, i, result['sections'])
-                continue
-
-            # 检测水平分隔线
-            if re.match(r'^[-*_{3,}]$', line_stripped):
+            # 检测水平分隔线（必须在列表检测之前，避免被误判为列表项）
+            if re.match(r'^[-*_]{3,}$', line_stripped):
                 result['sections'].append({
                     'type': 'hr',
                     'content': line_stripped
                 })
                 i += 1
+                continue
+
+            # 检测列表（使用完整正则，避免误判HR等非列表元素）
+            if (re.match(r'^[-*+]\s+', line_stripped) or
+                re.match(r'^\d+\.\s+', line_stripped)):
+                i = self._parse_list(lines, i, result['sections'])
                 continue
 
             # 检测引用块
@@ -275,11 +287,14 @@ class MarkdownParser:
                 base_indent = indent
 
             # 提取列表项内容
-            if ordered:
+            if ordered and ordered_match:
                 number = ordered_match.group(1)
                 content = ordered_match.group(2)
-            else:
+            elif not ordered and unordered_match:
                 content = unordered_match.group(1)
+            else:
+                # 理论上不会到这里，但作为保险
+                break
 
             # 处理嵌套（简化版本，只处理一层嵌套）
             if indent > base_indent + 2:
@@ -529,17 +544,19 @@ class MarkdownParser:
             text
         )
 
-        # 解析粗体和斜体
+        # 解析粗体和斜体（避免匹配公式占位符内部）
         text = re.sub(r'\*\*\*(.+?)\*\*\*', r'<strong><em>\1</em></strong>', text)
         text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
         text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)
         text = re.sub(r'___(.+?)___', r'<strong><em>\1</em></strong>', text)
         text = re.sub(r'__(.+?)__', r'<strong>\1</strong>', text)
-        text = re.sub(r'_(.+?)_', r'<em>\1</em>', text)
+        # 下划线斜体：只匹配字母数字，避免匹配LaTeX公式中的下标
+        text = re.sub(r'_(\w+?)_', r'<em>\1</em>', text)
 
-        # 解析上标和下标
-        text = re.sub(r'\^\{(.+?)\}', r'<sup>\1</sup>', text)
-        text = re.sub(r'~\{(.+?)\}', r'<sub>\1</sub>', text)
+        # 注释：上标和下标功能与LaTeX公式冲突，已禁用
+        # LaTex公式使用 ^ 和 _ 作为语法，不应转换为HTML标签
+        # text = re.sub(r'\^\{(.+?)\}', r'<sup>\1</sup>', text)
+        # text = re.sub(r'~\{(.+?)\}', r'<sub>\1</sub>', text)
 
         return text
 
@@ -587,13 +604,46 @@ class MarkdownParser:
                 'alt': match.group(2)
             })
 
-        # 提取公式
-        for match in re.finditer(r'\{FORMULA_(INLINE|DISPLAY):([^\}]+)\}', text):
-            elements.append({
-                'type': 'formula',
-                'mode': 'inline' if match.group(1) == 'INLINE' else 'display',
-                'content': match.group(2)
-            })
+        # 提取公式（手动解析以支持嵌套花括号）
+        formula_start = 0
+        while True:
+            # 查找公式占位符开始
+            start = text.find('{FORMULA_', formula_start)
+            if start == -1:
+                break
+
+            # 提取类型和内容
+            type_end = text.find(':', start)
+            if type_end == -1:
+                break
+
+            formula_type = text[start+9:type_end]  # 跳过 '{FORMULA_'
+
+            # 手动查找配对的结束花括号
+            brace_count = 0
+            i = type_end + 1
+            content_start = i
+
+            while i < len(text):
+                if text[i] == '{':
+                    brace_count += 1
+                elif text[i] == '}':
+                    if brace_count == 0:
+                        # 找到配对的结束括号
+                        formula_content = text[content_start:i]
+                        elements.append({
+                            'type': 'formula',
+                            'mode': 'inline' if formula_type == 'INLINE' else 'display',
+                            'content': formula_content
+                        })
+                        formula_start = i + 1
+                        break
+                    else:
+                        brace_count -= 1
+                i += 1
+            else:
+                # 未找到配对的结束括号
+                break
 
         # 提取链接
         for match in re.finditer(r'\{LINK:([^\|]+)\|([^\}]+)\}', text):
