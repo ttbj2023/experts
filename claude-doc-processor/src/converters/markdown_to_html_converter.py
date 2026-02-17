@@ -142,9 +142,14 @@ class MarkdownToHTMLConverter(BaseConverter):
 
             # ========== Stage 3: 生成 HTML ==========
             self.logger.info("\n[3/3] 生成 Word 兼容 HTML...")
+
+            # 获取 Markdown 文件所在目录（用于查找相对路径图片）
+            md_file_dir = os.path.dirname(os.path.abspath(input_path)) if input_path else None
+
             html_content = self.html_generator.generate(
                 parsed_content,
-                images_dir=images_dir
+                images_dir=images_dir,
+                md_file_dir=md_file_dir
             )
 
             html_length = len(html_content)

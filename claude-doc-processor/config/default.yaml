@@ -8,7 +8,7 @@ models:
     model: "zai-org/glm-4.6v-flash"
     max_tokens: 32768          # 输出token数（常用32k，最大128k）
     timeout: 60
-    temperature: 0.3           # 恢复到0.3，保持输出灵活性
+    temperature: 0.05          # 优化参数：100%成功率（测试日期：2026-02-18）
 
   # DeepSeek 配置
   deepseek:

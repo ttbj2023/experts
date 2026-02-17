@@ -7,6 +7,122 @@
 
 ---
 
+## [2.1.1] - 2026-02-18
+
+### 新增 (Added)
+
+#### 公式系统增强
+- ⭐ **MathML 原生公式支持**（替代 MathJax）
+  - 使用 `latex2mathml` 库（v3.78.1）将 LaTeX 转换为 MathML
+  - MathML 是 Word 原生支持的公式格式，双击即可编辑
+  - 新增 5 种 LaTeX 语法支持：
+    - Pandoc/MathJax: `$...$`（行内）、`$$...$$`（块级）
+    - 标准LaTeX: `\(...\)`（行内）、`\[...\]`（块级）
+    - LaTeX环境: `\begin{equation}...\end{equation}`
+    - 支持环境：equation、align、gather、multline
+
+#### 表格功能全面增强
+- ✅ **表格对齐支持**
+  - 解析 Markdown 表格分隔行 `:---` / `:-:` / `---:`
+  - 支持：左对齐、居中、右对齐
+  - 优于 Pandoc 的表格支持
+
+- ✅ **表格单元格格式化**
+  - 支持粗体（`**text**`）、斜体（`*text*`）
+  - 支持删除线（`~~text~~`）
+  - 支持行内代码（`` `code` ``）
+  - 支持公式转换（`$x^2$` → MathML）
+
+- ✅ **表格图片嵌入**
+  - 支持 Markdown 图片语法 `![alt](path)`
+  - 自动 Base64 编码内嵌
+  - 支持相对路径和绝对路径
+
+#### 智能符号识别
+- ✅ **几何符号 vs 表格区分**
+  - 至少需要 2 个 `|` 符号才识别为表格
+  - 避免将几何证明符号（如 `|AB=CD`）误识别为表格行
+  - 提升几何证明文档的处理准确率
+
+#### 引用块增强
+- ✅ **引用块内格式化支持**
+  - 支持粗体、斜体、删除线
+  - 支持行内代码
+  - 支持公式转换（`$E = mc^2$`）
+
+#### 代码占位符处理
+- ✅ **代码+公式混合处理**
+  - 支持 `{CODE:text}` 占位符正确转换
+  - 支持代码中嵌套公式（`` `代码中的 $x^2$ 公式` ``）
+  - 公式正确转换为 MathML
+
+### 改进 (Improved)
+
+#### 公式转换
+- 将公式格式从 MathJax (`<script type="math/tex">`) 改为 MathML (`<math>`)
+- MathML 是 Word 原生支持，兼容性更好
+- 公式在 Word 中可直接编辑，无需额外插件
+
+#### 表格处理
+- 表格解析器增强，支持对齐信息提取
+- 表格生成器增强，应用对齐属性
+- 单元格内容完整的 Markdown 解析流程
+
+#### 引用块处理
+- 引用块生成器增强，支持公式和格式化
+- 完整的内联元素解析流程
+
+### 文档更新 (Documentation)
+
+#### README.md
+- 更新 v2.1 功能描述
+- 添加 MathML 公式支持说明
+- 添加表格全面增强说明
+- 添加 5 种 LaTeX 格式支持
+- 添加智能符号识别说明
+- 更新配置示例（`formula_format: "mathml"`）
+- 更新 FAQ（公式相关问题）
+
+#### docs/MARKDOWN_TO_HTML.md
+- 更新公式部分：MathML 替代 MathJax
+- 添加 5 种 LaTeX 格式详细说明
+- 更新表格部分：对齐、格式化、图片、公式
+- 更新引用块部分：格式化支持
+- 更新 FAQ：表格和公式相关
+- 更新最佳实践：LaTeX 格式选择、表格设计
+
+### 测试验证 (Testing)
+
+#### EXAMPLE.md 测试结果
+- ✅ 42 个 MathML 公式全部正确转换
+- ✅ 9 个表格全部正确生成
+  - 包含对齐、格式化、图片、公式
+- ✅ 23 个粗体、9 个斜体、4 个删除线
+- ✅ 1 个行内代码、5 个引用块
+- ✅ 处理时间：0.04 秒
+- ✅ 输出大小：26,306 字符
+
+### 技术细节 (Technical Details)
+
+#### 新增方法
+- `_replace_markdown_images()` - 表格内图片嵌入
+- `_parse_inline_markdown()` - 内联元素解析（粗体、斜体、删除线）
+- `_parse_inline_code()` - 行内代码解析
+- `replace_latex_environment()` - LaTeX 环境处理
+
+#### 修改方法
+- `_parse_table()` - 增加对齐解析、几何符号检测
+- `_generate_table()` - 应用对齐、单元格格式化、图片嵌入
+- `_generate_blockquote()` - 支持公式和格式化
+- `_replace_formulas_in_text()` - 支持 5 种 LaTeX 格式
+- `_generate_paragraph_with_formula()` - 支持代码占位符
+- `_generate_paragraph_with_image()` - 支持代码占位符
+
+#### 依赖更新
+- 新增 `latex2mathml` >= 3.78.1（LaTeX 转 MathML）
+
+---
+
 ## [2.1.0] - 2026-02-17
 
 ### 新增 (Added)
@@ -24,7 +140,7 @@
 - ✅ HTML 4.01 Transitional DOCTYPE
 - ✅ CSS 2.1 完全兼容
 - ✅ Base64 内嵌图片（无裂图问题）
-- ✅ MathJax 公式支持（`<script type="math/tex">` 标签）
+- ✅ MathML 公式支持（`<math xmlns="...">` 标签）
 - ✅ 多栏布局（CSS `column-count`）
 - ✅ 复杂表格（原生表格属性）
 - ✅ 多层列表（嵌套有序/无序列表）

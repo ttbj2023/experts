@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**版本**: v2.1 (增强版) | **状态**: ✅ 生产就绪 | **更新**: 2026-02-17
+**版本**: v2.1.1 (增强版) | **状态**: ✅ 生产就绪 | **更新**: 2026-02-18
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
@@ -41,10 +41,11 @@
 ### v2.1 新增功能
 
 - **Word完美兼容** - HTML 4.01 + CSS 2.1，100%兼容所有Word版本
-- **可编辑公式** - MathJax支持，双击公式即可编辑
+- **可编辑公式** - MathML原生支持，双击公式即可在Word中编辑
 - **Base64图片** - 无裂图问题，图片自动内嵌优化
-- **多栏布局** - 支持教辅材料常用的双栏/三栏布局
-- **复杂表格** - 完美支持合并单元格、边框样式
+- **表格全面增强** - 支持对齐、格式化、内嵌图片、公式转换（优于Pandoc）
+- **多LaTeX格式** - 支持5种LaTeX语法（Pandoc、标准LaTeX、LaTeX环境）
+- **智能符号识别** - 区分几何符号与表格，避免误识别
 - **Markdown转HTML** - 一条命令完成转换，超快速度
 
 ### 核心技术
@@ -229,7 +230,9 @@ claude-doc-processor/
 **核心特性**：
 - ✅ HTML 4.01 Transitional + CSS 2.1
 - ✅ Base64内嵌图片（无裂图）
-- ✅ MathJax公式（可编辑）
+- ✅ MathML公式（Word原生，可编辑）
+- ✅ 表格全面支持（对齐、格式化、图片、公式）
+- ✅ 多LaTeX格式（$...$, \[...\], \(...\), \begin{equation}...\end{equation}）
 - ✅ 多栏布局、复杂表格、多层列表
 
 ### PDF转换（5阶段架构）
@@ -370,7 +373,7 @@ markdown_to_html:
   image_embedding: "base64"  # base64 | relative | hybrid
   image_max_size: 1280
   image_quality: 85
-  formula_format: "script"   # script | text | image
+  formula_format: "mathml"   # mathml（推荐）| script | text
   enable_columns: true
   enable_tables: true
   enable_lists: true
@@ -546,14 +549,17 @@ markdown_to_html:
 
 ### Q4: 公式在Word中无法编辑？
 
-**A**: 确保使用正确的公式格式：
+**A**: 转换器默认使用MathML格式（Word原生支持），确保公式语法正确：
 ```markdown
-# ✅ 正确格式
-$$x^2$$
-$x^2$
+# ✅ 支持的LaTeX格式（5种）
+$$x^2$$                  # Pandoc块级公式
+$x^2$                    # Pandoc行内公式
+\[x^2\]                  # 标准LaTeX块级
+\(x^2\)                  # 标准LaTeX行内
+\begin{equation}x^2\end{equation}  # LaTeX环境
 
-# ❌ 错误格式
-\[ x^2 \]  # 不支持
+# ❌ 错误示例
+\{x^2\}  # 不使用反斜杠转义
 ```
 
 ### Q5: LibreOffice转换失败？

@@ -225,12 +225,15 @@ class MarkdownParser:
                 break
 
             # 遇到特殊元素，段落结束
+            # 注意：对于 | 开头的行，只有当它是真正的表格行（至少 2 个 |）时才中断
+            # 排除几何证明中的单个 | 符号（如 |AB=CD, 表示"因为"）
+            line_stripped = line.strip()
             if (line.startswith('#') or
                 line.startswith('```') or
-                line.strip().startswith('|') or
+                (line_stripped.startswith('|') and line_stripped.count('|') >= 2) or
                 re.match(r'^\s*[-*+]\s', line) or
                 re.match(r'^\s*\d+\.\s', line) or
-                line.strip().startswith(':::')):
+                line_stripped.startswith(':::')):
                 break
 
             paragraph_lines.append(line)
@@ -348,12 +351,20 @@ class MarkdownParser:
         Returns:
             下一行索引
         """
+        # 检查第一行是否满足表格条件（至少 2 个 | 符号）
+        # 如果不满足，返回 start_idx + 1，让这一行被当作普通段落处理
+        first_line = lines[start_idx].strip()
+        if not first_line.startswith('|') or first_line.count('|') < 2:
+            return start_idx + 1
+
         table_lines = []
 
         i = start_idx
         while i < len(lines):
             line = lines[i].strip()
-            if not line.startswith('|'):
+            # 表格行必须至少有 2 个 | 符号（首尾各一个）
+            # 排除只有一个 | 的情况（如几何证明中的"因为"符号）
+            if not line.startswith('|') or line.count('|') < 2:
                 break
             table_lines.append(line)
             i += 1
@@ -363,6 +374,21 @@ class MarkdownParser:
 
         # 解析表头
         headers = [cell.strip() for cell in table_lines[0].split('|')[1:-1]]
+
+        # 解析分隔行，提取对齐信息
+        aligns = []
+        if len(table_lines) >= 2:
+            separator_cells = [cell.strip() for cell in table_lines[1].split('|')[1:-1]]
+            for cell in separator_cells:
+                # 判断对齐方式
+                if cell.startswith(':') and cell.endswith(':'):
+                    aligns.append('center')  # :---:
+                elif cell.startswith(':'):
+                    aligns.append('left')     # :---
+                elif cell.endswith(':'):
+                    aligns.append('right')    # ---:
+                else:
+                    aligns.append('center')   # 默认居中
 
         # 跳过分隔行
         table_lines = table_lines[2:]
@@ -383,6 +409,7 @@ class MarkdownParser:
         sections.append({
             'type': 'table',
             'headers': headers,
+            'aligns': aligns,  # 添加对齐信息
             'rows': rows
         })
 
