@@ -1,0 +1,296 @@
+# 清新薄荷绿商务模板
+# 适用于：科技企业、环保产业、健康医疗、创新公司
+# 特点：清新薄荷绿配色、活力感、现代风格、亲和力强
+
+template_name: "清新薄荷绿商务"
+template_description: "清新薄荷绿配色，活力现代风格，适合科技、环保、健康等创新行业"
+template_version: "1.0.0"
+template_author: "Claude Doc Processor"
+
+# 样式配置
+styles:
+  # 字体配置（现代清新）
+  fonts:
+    default: "苹方"  # 苹果中文字体（现代清新）
+    western: "Segoe UI"  # 微软现代字体
+    heading: "苹方"
+    heading_western: "Poppins"  # Google现代字体
+    code: "Fira Code"  # 现代等宽字体
+
+  # 字号配置
+  font_sizes:
+    body: 11
+    heading1: 26
+    heading2: 20
+    heading3: 16
+    heading4: 14
+    heading5: 12
+    heading6: 11
+    caption: 10
+    footnote: 9
+
+  # 行距和间距
+  spacing:
+    line_height: 1.5
+    paragraph_spacing_before: 8
+    paragraph_spacing_after: 8
+    heading_spacing_before: 18
+    heading_spacing_after: 10
+
+  # 颜色配置（薄荷绿配色）
+  colors:
+    text: "#2D3436"  # 深灰
+    heading: "#00A86B"  # 薄荷绿
+    link: "#00A86B"
+    table_border: "#98D8C8"  # 浅绿边框
+    table_header_bg: "#E8F8F5"  # 极浅绿背景
+    emphasis: "#00A86B"
+    highlight: "#E8F8F5"  # 浅绿高亮
+
+# 页面布局
+layout:
+  page_size: "A4"
+  margins:
+    top: "2.2cm"
+    bottom: "2.2cm"
+    left: "2.5cm"
+    right: "2.5cm"
+
+  # 段落设置
+  paragraph:
+    first_line_indent: "0em"
+    text_align: "left"
+
+# 标题样式（清新活力）
+headings:
+  h1:  # 文档标题
+    font_size: 26
+    font_weight: "bold"
+    text_align: "left"
+    color: "#00A86B"
+    margin_top: 32
+    margin_bottom: 20
+    page_break_before: false
+    border_left: "6pt solid #00A86B"  # 左侧绿色粗条
+    padding_left: 12
+
+  h2:  # 章标题
+    font_size: 20
+    font_weight: "bold"
+    text_align: "left"
+    color: "#00A86B"
+    margin_top: 24
+    margin_bottom: 12
+    border_bottom: "2pt solid #98D8C8"  # 浅绿底线
+    numbering: true
+
+  h3:  # 节标题
+    font_size: 16
+    font_weight: "bold"
+    text_align: "left"
+    color: "#00A86B"
+    margin_top: 18
+    margin_bottom: 10
+    numbering: true
+
+  h4:
+    font_size: 14
+    font_weight: "bold"
+    color: "#00A86B"
+    margin_top: 16
+    margin_bottom: 8
+
+  h5:
+    font_size: 12
+    font_weight: "bold"
+    color: "#2D3436"
+    margin_top: 14
+    margin_bottom: 6
+
+  h6:
+    font_size: 11
+    font_weight: "normal"
+    color: "#636E72"
+    margin_top: 12
+    margin_bottom: 6
+
+# 表格样式（清新）
+tables:
+  border_collapse: true
+  border_width: 1
+  border_style: "solid"
+  border_color: "#98D8C8"  # 浅绿边框
+  cell_padding: 6
+
+  # 表题样式
+  caption:
+    position: "above"
+    text_align: "left"
+    font_size: 11
+    font_weight: "bold"
+    color: "#00A86B"
+    numbering: true
+    margin_bottom: 8
+
+  # 清新表格样式
+  style: "full_grid"
+  header_row:
+    background_color: "#E8F8F5"  # 极浅绿背景
+    font_weight: "bold"
+    color: "#00A86B"  # 绿色文字
+    border_bottom: "2pt solid #00A86B"
+
+  # 斑马纹
+  zebra_striping: true
+  zebra_color: "#F0FFF4"  # 更浅的绿色
+
+# 图片样式
+images:
+  max_width: "90%"
+  align: "center"
+
+  # 图题样式
+  caption:
+    position: "below"
+    text_align: "center"
+    font_size: 10
+    font_weight: "normal"
+    color: "#00A86B"
+    numbering: true
+
+  embedding: "base64"
+  max_dimension: 1920
+  quality: 92
+
+  # 圆角（清新感）
+  border_radius: 8
+
+# 公式样式
+formulas:
+  format: "script"
+  numbering: false
+
+# 列表样式
+lists:
+  ordered:
+    style: "arabic"
+    indent: 1.5
+
+  unordered:
+    marker: "disc"  # 圆形
+    marker_color: "#00A86B"  # 绿色项目符号
+    indent: 1.5
+
+  spacing:
+    between_items: 4
+    after_list: 8
+
+# 代码块样式（清新）
+code_blocks:
+  font_family: "Fira Code, Consolas"
+  font_size: 10
+  background_color: "#E8F8F5"  # 浅绿背景
+  border: "1pt solid #98D8C8"
+  padding: 12
+  line_height: 1.4
+  border_radius: 4
+
+# 引用样式（清新）
+blockquotes:
+  font_style: "normal"
+  left_indent: "1.5em"
+  right_indent: "0"
+  border_left: "4pt solid #00A86B"  # 绿色左边框
+  background_color: "#F0FFF4"  # 浅绿背景
+  padding_left: 12
+  padding_top: 8
+  padding_bottom: 8
+  font_color: "#2D3436"
+
+# 强调样式
+emphasis:
+  bold:
+    color: "#00A86B"  # 粗体用绿色
+    font_weight: "bold"
+  italic:
+    color: "#636E72"
+  highlight:
+    background_color: "#FFEB3B"  # 明亮黄色高亮
+    color: "#2D3436"
+
+# 功能开关
+features:
+  enable_columns: false
+  enable_tables: true
+  enable_lists: true
+  enable_code_blocks: true
+  enable_blockquotes: true
+  enable_horizontal_rules: true
+  enable_icons: true  # 支持图标
+
+# 高级功能
+advanced:
+  # 封面页（清新）
+  cover_page:
+    enable: true
+    background_color: "#F0FFF4"  # 浅绿背景
+    title:
+      font_size: 32
+      font_weight: "bold"
+      color: "#00A86B"
+      align: "left"
+      margin_top: 8
+    subtitle:
+      font_size: 16
+      color: "#636E72"
+      align: "left"
+    metadata:
+      font_size: 11
+      color: "#636E72"
+      align: "left"
+      margin_top: 3
+
+  # 图标系统
+  icons:
+    enable: true
+    color: "#00A86B"
+    style: "outline"  # 轮廓图标
+
+  # 渐变效果
+  gradients:
+    enable: true
+    heading_gradient:
+      - "#00A86B"
+      - "#98D8C8"
+
+# 页眉页脚（清新）
+header_footer:
+  header:
+    enable: true
+    text: "{title}"
+    font_size: 9
+    color: "#00A86B"
+    border_bottom: "2pt solid #E8F8F5"  # 浅绿底线
+
+  footer:
+    enable: true
+    text: "{page} | {date}"
+    font_size: 9
+    color: "#636E72"
+    align: "center"
+
+# 输出选项
+output:
+  include_mathjax: false
+  pretty_print: true
+  encoding: "utf-8"
+
+# 元数据
+metadata:
+  title: ""
+  company: ""
+  author: ""
+  date: ""
+  version: ""
+  tags: []
+  category: ""  # 文档分类

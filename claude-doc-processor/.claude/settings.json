@@ -1,6 +1,7 @@
 {
   "enabledMcpJsonServers": [
-    "zhipu-vision"
+    "zhipu-vision",
+    "tool-engine-local"
   ],
   "permissions": {
     "allow": [
@@ -8,7 +9,8 @@
       "Edit",
       "Bash(pandoc:*)",
       "Bash(./scripts/*)",
-      "mcp__zhipu-vision__*"
+      "mcp__zhipu-vision__*",
+      "mcp__tool-engine-local__*"
     ],
     "deny": [],
     "ask": []

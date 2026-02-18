@@ -1,0 +1,312 @@
+# 现代简约商务模板
+# 适用于：科技企业、创业公司、互联网行业商务文档
+# 特点：极简设计、大量留白、现代字体、清新蓝白配色
+
+template_name: "现代简约商务"
+template_description: "2026年极简主义风格，大量留白，现代字体，清新蓝白配色，适合科技企业和创业公司"
+template_version: "1.0.0"
+template_author: "Claude Doc Processor"
+
+# 样式配置
+styles:
+  # 字体配置（现代感）
+  fonts:
+    default: "思源黑体"  # 无衬线字体，现代感
+    western: "Inter"  # 2026年最流行的现代字体
+    heading: "思源黑体"
+    heading_western: "Inter"
+    code: "SF Mono"  # 苹果等宽字体，现代感
+
+  # 字号配置（比传统商务更大）
+  font_sizes:
+    body: 12  # 正文稍大（易读性优先）
+    heading1: 32  # 一级标题（超大标题，现代感）
+    heading2: 24  # 二级标题
+    heading3: 18  # 三级标题
+    heading4: 16  # 四级标题
+    heading5: 14  # 五级标题
+    heading6: 12  # 六级标题
+    caption: 11  # 图表标题
+    footnote: 10
+
+  # 行距和间距（宽松舒适）
+  spacing:
+    line_height: 1.6  # 1.6倍行距（更加宽松）
+    paragraph_spacing_before: 12  # 段前间距加大
+    paragraph_spacing_after: 12  # 段后间距加大
+    heading_spacing_before: 24  # 标题前间距（大量留白）
+    heading_spacing_after: 16  # 标题后间距
+
+  # 颜色配置（清新蓝白）
+  colors:
+    text: "#24292E"  # GitHub深色（现代科技感）
+    heading: "#0366D6"  # GitHub蓝（现代科技感）
+    link: "#0366D6"
+    table_border: "#E1E4E8"  # 浅灰边框
+    table_header_bg: "#F6F8FA"  # GitHub浅灰背景
+    emphasis: "#0366D6"
+    highlight: "#FFFBDD"  # 柔和黄色高亮
+
+# 页面布局
+layout:
+  page_size: "A4"
+  margins:
+    top: "2.54cm"  # 标准边距（更大留白）
+    bottom: "2.54cm"
+    left: "2.54cm"
+    right: "2.54cm"
+
+  # 段落设置
+  paragraph:
+    first_line_indent: "0em"  # 不首行缩进（现代风格）
+    text_align: "left"
+    max_width: "85%"  # 限制最大宽度（提高可读性）
+
+# 标题样式（现代简约）
+headings:
+  h1:  # 文档标题
+    font_size: 32
+    font_weight: "bold"
+    text_align: "left"  # 左对齐（现代风格）
+    color: "#0366D6"
+    margin_top: 48  # 巨大上边距
+    margin_bottom: 24
+    page_break_before: false
+    border_bottom: "none"  # 无边框（极简）
+    letter_spacing: "-0.02em"  # 字间距收紧（现代感）
+
+  h2:  # 章标题
+    font_size: 24
+    font_weight: "bold"
+    text_align: "left"
+    color: "#0366D6"
+    margin_top: 36  # 大间距
+    margin_bottom: 16
+    border_bottom: "1pt solid #E1E4E8"  # 细线边框
+    numbering: true
+
+  h3:  # 节标题
+    font_size: 18
+    font_weight: "bold"
+    text_align: "left"
+    color: "#24292E"  # 深灰色（不是蓝色）
+    margin_top: 24
+    margin_bottom: 12
+    numbering: true
+
+  h4:
+    font_size: 16
+    font_weight: "bold"
+    color: "#24292E"
+    margin_top: 20
+    margin_bottom: 10
+
+  h5:
+    font_size: 14
+    font_weight: "bold"
+    color: "#24292E"
+    margin_top: 16
+    margin_bottom: 8
+
+  h6:
+    font_size: 12
+    font_weight: "normal"
+    color: "#586069"  # 灰色
+    margin_top: 16
+    margin_bottom: 8
+
+# 表格样式（极简）
+tables:
+  border_collapse: true
+  border_width: 0.5  # 极细边框
+  border_style: "solid"
+  border_color: "#E1E4E8"  # 浅灰边框
+  cell_padding: 8  # 较大内边距（舒适感）
+
+  # 表题样式
+  caption:
+    position: "above"
+    text_align: "left"
+    font_size: 12
+    font_weight: "bold"
+    color: "#586069"  # 灰色（不抢眼）
+    numbering: true
+    margin_bottom: 8
+
+  # 极简表格样式
+  style: "full_grid"
+  header_row:
+    background_color: "#F6F8FA"  # 浅灰背景（柔和）
+    font_weight: "bold"
+    color: "#24292E"
+    border_bottom: "2pt solid #D0D7DE"  # 表头稍粗
+
+  # 斑马纹（极浅）
+  zebra_striping: true
+  zebra_color: "#FAFAFA"  # 几乎白色
+
+  # 圆角效果（Word中通过CSS模拟）
+  border_radius: 4
+
+# 图片样式
+images:
+  max_width: "100%"  # 全宽图片
+  align: "center"
+
+  # 图题样式
+  caption:
+    position: "below"
+    text_align: "center"
+    font_size: 11
+    font_weight: "normal"
+    color: "#586069"
+    numbering: true
+    margin_top: 8
+
+  embedding: "base64"
+  max_dimension: 2560  # 支持高清图片
+  quality: 95
+
+  # 阴影效果（现代感）
+  box_shadow: "0 4px 12px rgba(0,0,0,0.08)"
+
+# 公式样式
+formulas:
+  format: "script"
+  numbering: false
+
+# 列表样式
+lists:
+  ordered:
+    style: "arabic"
+    indent: 2.0
+
+  unordered:
+    marker: "circle"  # 圆形项目符号（现代感）
+    marker_color: "#0366D6"
+    indent: 2.0
+
+  spacing:
+    between_items: 6  # 列表项间距加大
+    after_list: 12
+
+# 代码块样式（现代）
+code_blocks:
+  font_family: "SF Mono, Consolas, Monaco"
+  font_size: 11
+  background_color: "#F6F8FA"  # GitHub浅灰
+  border: "1pt solid #E1E4E8"
+  border_color: "#E1E4E8"
+  padding: 16  # 加大内边距
+  line_height: 1.5
+  border_radius: 6  # 圆角
+
+# 引用样式（极简）
+blockquotes:
+  font_style: "normal"
+  left_indent: "2em"
+  right_indent: "0"
+  border_left: "3pt solid #E1E4E8"  # 浅灰左边框
+  background_color: "transparent"  # 无背景色（极简）
+  padding_left: 16
+  font_color: "#586069"  # 灰色文字
+
+# 强调样式
+emphasis:
+  bold:
+    color: "#24292E"  # 保持深色（不使用蓝色）
+    font_weight: "bold"
+  italic:
+    color: "#586069"
+  highlight:
+    background_color: "#FFFBDD"  # 柔和黄色
+    color: "#24292E"
+
+# 功能开关
+features:
+  enable_columns: false  # 极简不使用多栏
+  enable_tables: true
+  enable_lists: true
+  enable_code_blocks: true
+  enable_blockquotes: true
+  enable_horizontal_rules: true
+  enable_cards: true  # 卡片式布局
+
+# 高级功能
+advanced:
+  # 卡片式布局（现代趋势）
+  cards:
+    enable: true
+    background_color: "#FFFFFF"
+    border: "1pt solid #E1E4E8"
+    border_radius: 8
+    box_shadow: "0 2px 8px rgba(0,0,0,0.06)"
+    padding: 20
+
+  # 封面页（极简）
+  cover_page:
+    enable: true
+    background_color: "#F6F8FA"  # 浅灰背景
+    title:
+      font_size: 42  # 超大标题
+      font_weight: "bold"
+      color: "#0366D6"
+      align: "left"
+      margin_top: 10
+    subtitle:
+      font_size: 18
+      color: "#586069"
+      align: "left"
+    metadata:
+      font_size: 12
+      color: "#586069"
+      align: "left"
+      margin_top: 4
+
+  # 执行摘要（卡片式）
+  executive_summary:
+    enable: true
+    title: "摘要"
+    background_color: "#F6F8FA"
+    border: "none"
+    border_radius: 8
+    padding: 20
+    font_size: 12
+
+  # 数据可视化
+  data_visualization:
+    enable: true
+    chart_colors:
+      - "#0366D6"  # 蓝色
+      - "#28A745"  # 绿色
+      - "#F6A945"  # 橙色
+      - "#D73A49"  # 红色
+      - "#6F42C1"  # 紫色
+
+# 页眉页脚（极简）
+header_footer:
+  header:
+    enable: false  # 极简风格不用页眉
+
+  footer:
+    enable: true
+    text: "{page}"  # 仅页码（极简）
+    font_size: 10
+    color: "#586069"
+    align: "center"
+    border_top: "none"
+
+# 输出选项
+output:
+  include_mathjax: false
+  pretty_print: true
+  encoding: "utf-8"
+
+# 元数据
+metadata:
+  title: ""
+  company: ""
+  author: ""
+  date: ""
+  version: ""
+  tags: []  # 标签（现代文档常使用）

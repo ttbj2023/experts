@@ -75,6 +75,7 @@ class ImageProcessor:
         pdf_path: str,
         output_dir: str,
         dpi: int = 200,
+        start_page: int = 0,
         max_pages: int = None,
         use_opencv: bool = True
     ) -> List[Dict]:
@@ -85,6 +86,7 @@ class ImageProcessor:
             pdf_path: PDF文件路径
             output_dir: 输出目录
             dpi: 渲染DPI
+            start_page: 起始页码（0-based）
             max_pages: 最大处理页数
             use_opencv: 是否使用OpenCV检测（如果False，则跳过图片提取）
 
@@ -107,39 +109,49 @@ class ImageProcessor:
         logger.info("=" * 60)
         logger.info("PDF图片提取")
         logger.info("=" * 60)
+        logger.info(f"  起始页码: {start_page + 1}")
+        if max_pages:
+            logger.info(f"  最大页数: {max_pages}")
 
         pdf = fitz.open(pdf_path)
-        total_pages = len(pdf)
+        total_pages_in_pdf = len(pdf)
 
-        if max_pages:
-            total_pages = min(total_pages, max_pages)
+        # 计算实际处理的页数范围
+        end_page = min(start_page + max_pages, total_pages_in_pdf) if max_pages else total_pages_in_pdf
+        actual_pages = end_page - start_page
+
+        logger.info(f"  PDF总页数: {total_pages_in_pdf}")
+        logger.info(f"  实际处理: {actual_pages}页")
 
         images_dir = os.path.join(output_dir, 'extracted_images')
         os.makedirs(images_dir, exist_ok=True)
 
         all_images = []
 
-        for page_num in range(total_pages):
-            logger.info(f"\n提取第 {page_num + 1}/{total_pages} 页的图片...")
+        for page_idx in range(actual_pages):
+            page_num = start_page + page_idx  # 实际页码（0-based）
+            display_page_num = page_num + 1    # 显示页码（1-based）
+
+            logger.info(f"\n提取第 {display_page_num}/{total_pages_in_pdf} 页的图片...")
 
             # 渲染页面
             page = pdf[page_num]
             mat = fitz.Matrix(dpi/72, dpi/72)
             pix = page.get_pixmap(matrix=mat)
 
-            page_image_path = os.path.join(output_dir, f'.temp_page_{page_num + 1}.png')
+            page_image_path = os.path.join(output_dir, f'.temp_page_{display_page_num}.png')
             pix.save(page_image_path)
 
             # 使用OpenCV检测图片
             if use_opencv and OPENCV_AVAILABLE:
-                images_info = self._detect_with_opencv(page_image_path, page_num + 1)
+                images_info = self._detect_with_opencv(page_image_path, display_page_num)
             else:
                 images_info = []
 
             # 裁剪并保存图片
             for idx, img_info in enumerate(images_info):
                 bbox = img_info['bbox']
-                filename = f'page_{page_num + 1:03d}_img_{idx + 1:02d}.png'
+                filename = f'page_{display_page_num:03d}_img_{idx + 1:02d}.png'
                 output_path = os.path.join(images_dir, filename)
 
                 if self._crop_image_from_page(page_image_path, bbox, output_path):

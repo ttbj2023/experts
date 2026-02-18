@@ -1,0 +1,435 @@
+# 党政机关公文模板
+# 依据：GB/T 9704-2012《党政机关公文格式》
+# 适用：各级党政机关公文
+# 特点：严格遵循国家标准，仿宋字体，固定行距28磅
+
+template_name: "党政机关公文"
+template_description: "严格遵循GB/T 9704-2012国家标准，适用于党政机关公文，仿宋_GB2312字体，固定28磅行距，每页22行每行28字"
+template_version: "1.0.0"
+template_author: "Claude Doc Processor"
+standard: "GB/T 9704-2012"
+
+# 样式配置
+styles:
+  # 字体配置（严格按国标）
+  fonts:
+    default: "仿宋_GB2312"  # 正文标准字体
+    western: "Times New Roman"  # 数字和西文
+    heading: "黑体"  # 一级标题
+    heading_2: "楷体_GB2312"  # 二级标题
+    heading_3: "仿宋_GB2312"  # 三级标题
+    heading_4: "仿宋_GB2312"  # 四级标题
+    official_title: "方正小标宋简体"  # 发文机关标志
+    code: "仿宋_GB2312"  # 公文一般不用代码块
+
+  # 字号配置（严格按国标）
+  font_sizes:
+    body: 16  # 3号（正文标准）
+    heading1: 16  # 3号
+    heading2: 16  # 3号
+    heading3: 16  # 3号
+    heading4: 16  # 3号
+    official_title: 22  # 2号（发文机关标志）
+    page_number: 14  # 4号
+    caption: 16  # 附件说明等
+    footnote: 14  # 附注等
+
+  # 行距和间距（严格按国标）
+  spacing:
+    line_height: 28pt  # 固定值28磅（正文行距）- 必须加pt单位
+    title_line_height: 35pt  # 固定值35磅（公文标题行距）- 必须加pt单位
+    paragraph_spacing_before: 0  # 段前0磅
+    paragraph_spacing_after: 0  # 段后0磅
+    heading_spacing_before: 0  # 标题前不额外加间距
+    heading_spacing_after: 0  # 标题后不额外加间距
+
+    # 版心规格
+    lines_per_page: 22  # 每页22行
+    chars_per_line: 28  # 每行28字
+
+  # 颜色配置
+  colors:
+    text: "#000000"  # 纯黑色
+    heading: "#000000"  # 纯黑色
+    official_mark: "#FF0000"  # 红色（发文机关标志）
+    link: "#000000"  # 公文一般无链接
+    table_border: "#000000"  # 黑色边框
+    table_header_bg: "#FFFFFF"  # 表头白色
+    emphasis: "#000000"  # 纯黑色
+
+# 页面布局（严格按国标）
+layout:
+  page_size: "A4"  # 国际标准A4纸
+
+  # 页边距（单位：mm）
+  margins:
+    top: "37mm"  # 天头（上白边）37mm ± 1mm
+    bottom: "35mm"  # 地脚（下白边）35mm
+    left: "28mm"  # 订口（左白边）28mm ± 1mm
+    right: "26mm"  # 翻口（右白边）26mm
+
+  # 版心尺寸（不含页码）
+  version_width: "156mm"  # 版心宽度
+  version_height: "225mm"  # 版心高度
+
+  # 段落设置
+  paragraph:
+    first_line_indent: "2ch"  # 首行缩进2字符
+    text_align: "justify"  # 两端对齐
+    widow_orphan_control: true
+
+# 标题样式（严格按国标）
+headings:
+  h1:  # 一级标题：一、
+    font_family: "黑体"
+    font_size: 16  # 3号
+    font_weight: "normal"  # 不加粗
+    text_align: "left"
+    color: "#000000"
+    margin_top: 0
+    margin_bottom: 0
+    numbering: "chinese"  # 一、二、三、
+    prefix: "一、"
+
+  h2:  # 二级标题：（一）
+    font_family: "楷体_GB2312"
+    font_size: 16  # 3号
+    font_weight: "bold"  # 加粗
+    text_align: "left"
+    color: "#000000"
+    margin_top: 0
+    margin_bottom: 0
+    numbering: "chinese_paren"  # （一）（二）（三）
+    prefix: "（一）"
+
+  h3:  # 三级标题：1.
+    font_family: "仿宋_GB2312"
+    font_size: 16  # 3号
+    font_weight: "bold"  # 加粗
+    text_align: "left"
+    color: "#000000"
+    margin_top: 0
+    margin_bottom: 0
+    numbering: "arabic_dot"  # 1. 2. 3.（注意是圆点）
+    prefix: "1."
+
+  h4:  # 四级标题：（1）
+    font_family: "仿宋_GB2312"
+    font_size: 16  # 3号
+    font_weight: "normal"  # 不加粗
+    text_align: "left"
+    color: "#000000"
+    margin_top: 0
+    margin_bottom: 0
+    numbering: "arabic_paren"  # （1）（2）（3）
+    prefix: "（1）"
+
+# 表格样式（公文一般不用复杂表格）
+tables:
+  border_collapse: true
+  border_width: 0.75
+  border_style: "solid"
+  border_color: "#000000"  # 黑色边框
+  cell_padding: 4
+
+  # 表题样式
+  caption:
+    position: "above"
+    text_align: "left"
+    font_size: 16  # 3号
+    font_weight: "normal"
+    color: "#000000"
+    numbering: false
+
+  style: "full_grid"  # 全边框
+  header_row:
+    background_color: "#FFFFFF"  # 表头白色
+    font_weight: "bold"
+    color: "#000000"
+    border_bottom: "0.75pt solid #000000"
+
+  zebra_striping: false  # 公文表格不用斑马纹
+
+# 图片样式
+images:
+  max_width: "100%"
+  align: "center"
+
+  caption:
+    position: "below"
+    text_align: "center"
+    font_size: 14  # 4号
+    font_weight: "normal"
+    color: "#000000"
+    numbering: true
+
+  embedding: "base64"
+  max_dimension: 1920
+  quality: 90
+
+# 公式样式（公文一般不用）
+formulas:
+  format: "script"
+  numbering: false
+
+# 列表样式
+lists:
+  ordered:
+    style: "arabic"
+    indent: 2.0
+
+  unordered:
+    marker: "disc"  # 公文一般不使用无序列表
+    indent: 2.0
+
+  spacing:
+    between_items: 0  # 列表项之间无额外间距
+    after_list: 0  # 列表后无额外间距
+
+# 代码块样式（公文一般不用）
+code_blocks:
+  font_family: "仿宋_GB2312"
+  font_size: 14  # 4号
+  background_color: "#FFFFFF"
+  border: "1pt solid #000000"
+  padding: 8
+  line_height: 28  # 固定28磅
+
+# 引用样式
+blockquotes:
+  font_family: "仿宋_GB2312"
+  font_size: 16  # 3号
+  left_indent: "2ch"
+  right_indent: "0"
+  border_left: "4pt solid #000000"  # 黑色左边框
+  padding_left: 0  # 公文引用不缩进
+  background_color: "#FFFFFF"
+
+# 强调样式
+emphasis:
+  bold:
+    color: "#000000"
+    font_weight: "bold"
+  italic:
+    color: "#000000"
+    font_style: "italic"
+  highlight:
+    background_color: "#FFFFFF"  # 公文一般不高亮
+    color: "#000000"
+
+# 功能开关
+features:
+  enable_columns: false  # 公文不使用多栏
+  enable_tables: true
+  enable_lists: true
+  enable_code_blocks: false  # 公文不用代码块
+  enable_blockquotes: true
+  enable_horizontal_rules: false  # 公文不用分隔线
+
+# 高级功能（公文特殊要素）
+advanced:
+  # 发文机关标志（红色）
+  official_header:
+    enable: true
+    font_family: "方正小标宋简体"
+    font_size: 22  # 2号
+    color: "#FF0000"  # 红色
+    text_align: "center"
+    margin_top: 35  # 上边缘距版心35mm
+    format: "发文机关全称 + 文件"  # 如"××市人民政府文件"
+
+  # 红色分隔线
+  red_separator:
+    enable: true
+    color: "#FF0000"
+    width: 2  # 2磅
+    position: "below_official_header"  # 在发文机关标志下方
+
+  # 发文字号
+  dispatch_number:
+    enable: true
+    font_family: "仿宋_GB2312"
+    font_size: 16  # 3号
+    color: "#000000"
+    text_align: "center"
+    format: "机关代字〔年份〕序号"  # 如"×政发〔2026〕1号"
+    position: "below_red_line"  # 在红色分隔线下方空2行
+
+  # 签发人（上行文专用）
+  signer:
+    enable: true  # 上行文时启用
+    label_font: "仿宋_GB2312"  # "签发人"三字
+    label_size: 16  # 3号
+    name_font: "楷体_GB2312"  # 签发人姓名
+    name_size: 16  # 3号
+    position: "same_line_as_dispatch"  # 与发文字号同一行
+    align: "right"  # 居右空一字
+
+  # 公文标题
+  document_title:
+    enable: true
+    font_family: "方正小标宋简体"
+    font_size: 22  # 2号
+    font_weight: "normal"  # 不加粗
+    color: "#000000"
+    text_align: "center"
+    line_height: 35  # 固定值35磅
+    position: "below_red_line_2"  # 红色分隔线下空2行
+    format: "发文机关 + 事由 + 文种"  # 如"××市人民政府关于××工作的通知"
+
+  # 主送机关
+  main_recipient:
+    enable: true
+    font_family: "仿宋_GB2312"
+    font_size: 16  # 3号
+    color: "#000000"
+    text_align: "left"
+    position: "below_title"  # 标题下空1行
+    indent: "left"  # 顶格
+    format: "主送机关名称："  # 如"各县（市、区）人民政府，市政府各部门、各直属机构："
+
+  # 附件说明
+  attachment:
+    enable: true
+    font_family: "仿宋_GB2312"
+    font_size: 16  # 3号
+    color: "#000000"
+    text_align: "left"
+    position: "below_body"  # 正文下空1行
+    indent: "left"  # 顶格
+    format: "附件：1.××××；2.××××。"  # 如"附件：1.××方案；2.××清单。"
+
+  # 发文机关署名
+  issuer:
+    enable: true
+    font_family: "仿宋_GB2312"
+    font_size: 16  # 3号
+    color: "#000000"
+    text_align: "right"  # 右对齐
+    position: "above_date"  # 成文日期之上
+
+  # 成文日期
+  issue_date:
+    enable: true
+    font_family: "仿宋_GB2312"
+    font_size: 16  # 3号
+    color: "#000000"
+    text_align: "center"  # 居中（以署名为准居中）
+    format: "YYYY年MM月DD日"  # 如"2026年2月18日"
+    numbering: "arabic"  # 使用阿拉伯数字
+
+  # 附注
+  note:
+    enable: true
+    font_family: "仿宋_GB2312"
+    font_size: 14  # 4号
+    color: "#000000"
+    text_align: "left"
+    position: "below_date"  # 成文日期之下
+    indent: "left"  # 顶格
+    format: "（联系人：×××；电话：××××××××）"
+
+  # 版记
+  version_note:
+    enable: true
+    font_family: "仿宋_GB2312"
+    font_size: 16  # 3号
+    color: "#000000"
+
+    # 抄送机关
+    copy_to:
+      enable: true
+      label: "抄送："
+      position: "document_end"  # 公文末尾
+      align: "left"
+
+    # 印发机关
+    printing_office:
+      enable: true
+      position: "below_copy_to"  # 抄送机关下方
+      align: "left"
+
+    # 印发日期
+    printing_date:
+      enable: true
+      position: "same_line_as_office"  # 与印发机关同一行
+      format: "YYYY年MM月DD日印发"
+
+    # 分隔线
+    separators:
+      top_line: "0.35mm solid #000000"  # 首条分隔线（粗线）
+      middle_line: "0.25mm solid #000000"  # 中间分隔线（细线）
+      bottom_line: "0.35mm solid #000000"  # 末条分隔线（粗线）
+
+  # 份号
+  document_number:
+    enable: false  # 按需启用
+    font_family: "仿宋_GB2312"
+    font_size: 16  # 3号
+    color: "#000000"
+    position: "top_left"  # 版心左上角第一行
+    format: "000001"  # 6位阿拉伯数字
+
+  # 密级和保密期限
+  classification:
+    enable: false  # 按需启用
+    font_family: "黑体"
+    font_size: 16  # 3号
+    color: "#000000"
+    position: "top_left"  # 版心左上角
+    levels:
+      top_secret: "绝密★30年"  # 绝密30年
+      secret: "机密★20年"  # 机密20年
+      confidential: "秘密★10年"  # 秘密10年
+
+  # 紧急程度
+  urgency:
+    enable: false  # 按需启用
+    font_family: "黑体"
+    font_size: 16  # 3号
+    color: "#000000"
+    position: "top_left"  # 版心左上角
+    levels:
+      urgent: "特急"  # 特急
+      expedite: "加急"  # 加急
+
+# 页眉页脚
+header_footer:
+  header:
+    enable: false  # 公文不使用页眉
+
+  footer:
+    enable: true
+    page_number:
+      enable: true
+      font_family: "宋体"
+      font_size: 14  # 4号
+      color: "#000000"
+      position: "below_version"  # 版心下边缘之下
+      format: "— 1 —"  # 数字左右各一条一字线
+      align: "center"  # 居中
+      line_margin: 7  # 一字线上距版心下边缘7mm
+
+# 输出选项
+output:
+  include_mathjax: false
+  pretty_print: true
+  encoding: "utf-8"
+
+# 元数据
+metadata:
+  # 公文默认元数据
+  issuing_authority: ""  # 发文机关
+  document_number: ""  # 发文字号
+  signer: ""  # 签发人（上行文）
+  title: ""  # 公文标题
+  main_recipient: ""  # 主送机关
+  copy_recipient: []  # 抄送机关
+  attachments: []  # 附件
+  issue_date: ""  # 成文日期
+  printing_office: ""  # 印发机关
+  contact_person: ""  # 联系人
+  contact_phone: ""  # 联系电话
+  classification: ""  # 密级
+  urgency: ""  # 紧急程度
+  document_number_code: ""  # 份号

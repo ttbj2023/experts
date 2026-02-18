@@ -123,11 +123,30 @@ export GLM_API_KEY="your_glm_key"
 # 限制处理页数
 ./convert.py large_document.pdf --max-pages 10
 
+# 从指定页开始处理（新增！）
+./convert.py large_document.pdf --start-page 51 --max-pages 50
+
 # 批量处理
 ./convert.py docs/*.pdf --batch
 
 # 查看详细日志
 ./convert.py document.pdf --verbose
+```
+
+#### 使用场景示例
+
+```bash
+# 场景1: 大文档分批处理（1000页PDF分成10批）
+./convert.py large.pdf --start-page 1 --max-pages 100 -o part1/
+./convert.py large.pdf --start-page 101 --max-pages 100 -o part2/
+./convert.py large.pdf --start-page 201 --max-pages 100 -o part3/
+# ... 依此类推
+
+# 场景2: 断点续传（处理到500页中断，从501页继续）
+./convert.py large.pdf --start-page 501 -o continue/
+
+# 场景3: 只处理特定章节（第100-200页是重点章节）
+./convert.py book.pdf --start-page 100 --max-pages 101 --refine-content -o chapter/
 ```
 
 ---
@@ -371,7 +390,31 @@ export DEEPSEEK_API_KEY="sk-xxxxx"
 ./convert.py document.pdf
 ```
 
-### 3. 查看详细日志
+### 3. 分页处理（新增）
+
+```bash
+# 从指定页开始处理
+./convert.py large.pdf --start-page 51 --max-pages 50
+
+# 大文档分批处理示例
+./convert.py large.pdf --start-page 1 --max-pages 100 -o part1/
+./convert.py large.pdf --start-page 101 --max-pages 100 -o part2/
+./convert.py large.pdf --start-page 201 --max-pages 100 -o part3/
+
+# 断点续传
+./convert.py large.pdf --start-page 501 -o continue/
+
+# 只处理特定章节
+./convert.py book.pdf --start-page 100 --max-pages 101 --refine-content -o chapter/
+```
+
+**应用场景**：
+- **大文档分批处理**：将大型PDF分成多个小任务，便于管理和恢复
+- **断点续传**：处理中断后可从断点继续，避免重复处理
+- **选择性处理**：只处理特定章节或页面范围
+- **并行处理**：可同时处理不同页码范围（在不同终端）
+
+### 4. 查看详细日志
 
 ```bash
 # 启用详细日志

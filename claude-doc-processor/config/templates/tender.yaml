@@ -1,0 +1,273 @@
+# 投标文件模板
+# 适用于：投标文件、招标文件、采购文件
+# 特点：严格符合国内标书规范，宋体为主，纯黑色，传统中文排版
+
+template_name: "投标文件"
+template_description: "严格符合国内标书编制规范，宋体纯黑色，传统中文排版，首行缩进2字符，固定行距22磅"
+template_version: "1.0.0"
+template_author: "Claude Doc Processor"
+
+# 样式配置
+styles:
+  # 字体配置（严格按照标书规范）
+  fonts:
+    default: "宋体"              # 中文默认字体（标书强制要求）
+    western: "Times New Roman"   # 西文默认字体
+    heading: "黑体"              # 标题字体（可加粗）
+    heading_western: "Arial"     # 标题西文字体
+    code: "Courier New"          # 代码字体
+
+  # 字号配置（严格按照标书规范）
+  font_sizes:
+    body: 12         # 小四号（正文）
+    heading1: 16     # 三号（一级标题）
+    heading2: 15     # 小三号（二级标题）
+    heading3: 14     # 四号（三级标题）
+    heading4: 12     # 小四号（四级标题）
+    heading5: 12     # 小四号（五级标题）
+    heading6: 12     # 小四号（六级标题）
+    caption: 12      # 表图标题（小四号）
+    table_content: 10.5  # 五号（表格内容）
+    footnote: 10.5   # 小五号（脚注）
+
+  # 行距和间距（严格按照标书规范）
+  spacing:
+    line_height: 1.5           # 1.5倍行距
+    paragraph_spacing_before: 0   # 段前间距（正文）
+    paragraph_spacing_after: 0    # 段后间距（正文）
+    heading_spacing_before: 12    # 标题前间距
+    heading_spacing_after: 6     # 标题后间距
+
+    # 标书特殊：固定行距22磅（约等于1.5倍）
+    fixed_line_spacing: 22
+
+  # 颜色配置（标书严格要求：纯黑色）
+  colors:
+    text: "#000000"       # 纯黑（正文不允许其他颜色）
+    heading: "#000000"    # 纯黑（标题纯黑色）
+    link: "#000000"       # 纯黑（链接也是黑色）
+    table_border: "#000000"  # 纯黑边框
+    table_header_bg: "#FFFFFF"  # 表头白色（无背景色）
+
+# 页面布局
+layout:
+  page_size: "A4"
+  margins:
+    top: "2.2cm"      # 上边距
+    bottom: "2.2cm"   # 下边距
+    left: "2.7cm"     # 左边距（装订侧，稍大）
+    right: "2.2cm"    # 右边距
+
+  # 段落设置
+  paragraph:
+    first_line_indent: "2em"  # 首行缩进2字符（标书规范）
+    text_align: "justify"     # 两端对齐
+    widow_orphan_control: true
+
+# 标题样式（严格按照标书规范）
+headings:
+  h1:  # 一级标题（章标题）
+    font_size: 16
+    font_weight: "bold"
+    text_align: "center"  # 居中
+    color: "#000000"
+    margin_top: 18
+    margin_bottom: 12
+    page_break_before: false  # 不强制分页
+    numbering: "chinese"  # 中文数字：一、二、三
+
+  h2:  # 二级标题（节标题）
+    font_size: 15
+    font_weight: "bold"
+    text_align: "left"
+    color: "#000000"
+    margin_top: 14
+    margin_bottom: 10
+    numbering: "chinese_paren"  # （一）、（二）、（三）
+
+  h3:  # 三级标题（目标题）
+    font_size: 14
+    font_weight: "bold"
+    text_align: "left"
+    color: "#000000"
+    margin_top: 12
+    margin_bottom: 8
+    numbering: "arabic"  # 1、2、3
+
+  h4:  # 四级标题（子目标题）
+    font_size: 12
+    font_weight: "bold"
+    text_align: "left"
+    color: "#000000"
+    margin_top: 12
+    margin_bottom: 6
+    numbering: "arabic_paren"  # (1)、(2)、(3)
+
+  h5:  # 五级标题（细目标题）
+    font_size: 12
+    font_weight: "normal"  # 五级标题不加粗
+    text_align: "left"
+    color: "#000000"
+    margin_top: 12
+    margin_bottom: 6
+    numbering: "circle"  # ①、②、③
+
+  h6:
+    font_size: 12
+    font_weight: "normal"
+    margin_top: 12
+    margin_bottom: 6
+
+# 表格样式（严格按照标书规范）
+tables:
+  border_collapse: true
+  border_width: 0.75  # 0.75磅（标书标准）
+  border_style: "solid"
+  border_color: "#000000"
+  cell_padding: 4
+
+  # 表题样式
+  caption:
+    position: "above"  # 表题在上方
+    text_align: "center"
+    font_size: 16  # 三号（标书规范）
+    font_weight: "bold"
+    numbering: true  # 表1、表2
+
+  style: "full_grid"
+  header_row:
+    background_color: "#FFFFFF"  # 表头无背景色（标书规范）
+    font_weight: "bold"
+    border_bottom: "1.5pt solid #000000"
+
+# 图片样式
+images:
+  max_width: "85%"
+  align: "center"
+
+  # 图题样式
+  caption:
+    position: "below"  # 图题在下方
+    text_align: "center"
+    font_size: 16  # 三号（标书规范）
+    font_weight: "bold"
+    numbering: true  # 图1、图2
+
+  embedding: "base64"
+  max_dimension: 1920
+  quality: 90
+
+# 公式样式
+formulas:
+  format: "script"
+  numbering: false
+
+# 列表样式（标书规范的特殊编号）
+lists:
+  ordered:
+    style: "chinese"  # 中文数字：一、二、三
+    indent: 2
+
+  unordered:
+    marker: "disc"
+    indent: 2
+
+  spacing:
+    between_items: 0
+    after_list: 6
+
+# 代码块样式
+code_blocks:
+  font_family: "Courier New"
+  font_size: 10.5
+  background_color: "#F5F5F5"
+  border: "1pt solid #000000"
+  padding: 8
+  line_height: 1.3
+
+# 引用样式
+blockquotes:
+  font_style: "normal"
+  left_indent: "2em"
+  right_indent: "0"
+  border_left: "4pt solid #000000"
+  padding_left: 12
+
+# 强调样式（标书要求：正文禁止加粗）
+emphasis:
+  bold:
+    color: "#000000"
+    font_weight: "bold"  # 仅标题可加粗
+  italic:
+    color: "#000000"
+  highlight:
+    background_color: "#FFFF00"  # 黄色高亮（允许）
+    color: "#000000"
+
+# 功能开关
+features:
+  enable_columns: false  # 标书通常不用多栏
+  enable_tables: true
+  enable_lists: true
+  enable_code_blocks: true
+  enable_blockquotes: true
+  enable_horizontal_rules: true
+
+# 高级功能
+advanced:
+  # 标书封面页
+  cover_page:
+    enable: true
+    title:
+      font_size: 22  # 小一或更大
+      font_weight: "bold"
+      align: "center"
+      margin_top: 6  # 距离顶部6cm
+    subtitle:
+      font_size: 16
+      align: "center"
+    metadata:
+      font_size: 14
+      align: "center"
+      line_height: 2
+
+  # 标书专用编号系统
+  numbering_system:
+    level_1: "chinese"       # 一、二、三
+    level_2: "chinese_paren"  # （一）、（二）、（三）
+    level_3: "arabic"         # 1、2、3
+    level_4: "arabic_paren"   # (1)、(2)、(3)
+    level_5: "circle"         # ①、②、③
+
+  # 标书特殊元素
+  tender_elements:
+    # 投标函样式
+    tender_letter:
+      title_font_size: 18
+      title_font_weight: "bold"
+      title_align: "center"
+      content_font_size: 14
+      content_indent: "2em"
+
+    # 法定声明样式
+    legal_statement:
+      font_family: "仿宋_GB2312"
+      font_size: 14
+      line_height: 1.5
+
+# 输出选项
+output:
+  include_mathjax: false  # 标书通常不需要公式渲染
+  pretty_print: true
+  encoding: "utf-8"
+
+# 元数据
+metadata:
+  # 投标文件默认元数据
+  title: ""
+  project_name: ""
+  bid_number: ""
+  bidder_name: ""
+  bidder_address: ""
+  bid_date: ""
+  bid_deadline: ""

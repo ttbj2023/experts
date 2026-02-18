@@ -1,0 +1,346 @@
+# 技术文档模板
+# 适用于：技术手册、API文档、开发指南、README
+# 特点：代码友好、清晰结构、等宽字体、深色主题、流程图支持
+
+template_name: "技术文档"
+template_description: "开发者友好风格，Consolas + Segoe UI，代码高亮，深色主题，适合技术文档和API手册"
+template_version: "1.0.0"
+template_author: "Claude Doc Processor"
+
+# 样式配置
+styles:
+  # 字体配置（区分正文和代码）
+  fonts:
+    default: "Segoe UI"  # 中文默认字体（现代、清晰）
+    western: "Segoe UI"  # 西文默认字体
+    heading: "Segoe UI Semibold"
+    heading_western: "Segoe UI Semibold"
+    code: "Consolas"  # 代码专用等宽字体
+    code_alt: "Courier New"  # 备用等宽字体
+
+  # 字号配置
+  font_sizes:
+    body: 10.5  # 正文（五号）
+    heading1: 22  # 一级标题
+    heading2: 18  # 二级标题
+    heading3: 16  # 三级标题
+    heading4: 14  # 四级标题
+    heading5: 12  # 五级标题
+    heading6: 10.5  # 六级标题
+    caption: 10  # 图表标题
+    code: 9.5  # 代码字号稍小
+    footnote: 9
+
+  # 行距和间距
+  spacing:
+    line_height: 1.6  # 1.6倍行距（提高可读性）
+    paragraph_spacing_before: 0
+    paragraph_spacing_after: 8  # 段落间距
+    heading_spacing_before: 16  # 标题前间距较大
+    heading_spacing_after: 8  # 标题后间距
+    code_block_spacing: 8  # 代码块前后间距
+
+  # 颜色配置（深色主题）
+  colors:
+    text: "#24292E"  # GitHub深色（接近黑色）
+    heading: "#0366D6"  # GitHub蓝色（标题）
+    link: "#0366D6"  # 链接蓝色
+    code_background: "#F6F8FA"  # 代码块浅灰背景
+    code_border: "#E1E4E8"  # 代码块边框
+    inline_code: "#E1E4E8"  # 行内代码背景
+    table_border: "#E1E4E8"  # 表格边框
+    table_header_bg: "#F6F8FA"  # 表头背景
+    emphasis: "#0366D6"
+    quote_border: "#DFF2E8"  # 引用边框绿色
+    quote_bg: "#F0FFF4"  # 引用背景浅绿
+
+# 页面布局
+layout:
+  page_size: "A4"
+  margins:
+    top: "2.0cm"
+    bottom: "2.0cm"
+    left: "2.0cm"
+    right: "2.0cm"
+
+  # 段落设置
+  paragraph:
+    first_line_indent: "0em"  # 技术文档不首行缩进
+    text_align: "left"
+    max_width: "800px"  # 最佳阅读宽度
+    widow_orphan_control: true
+
+# 标题样式
+headings:
+  h1:  # 文档标题
+    font_size: 22
+    font_weight: "bold"
+    text_align: "left"
+    color: "#0366D6"  # GitHub蓝
+    margin_top: 24
+    margin_bottom: 16
+    page_break_before: false  # 不强制分页
+    border_bottom: "2px solid #E1E4E8"  # 标题下细线
+
+  h2:  # 章标题
+    font_size: 18
+    font_weight: "bold"
+    text_align: "left"
+    color: "#0366D6"
+    margin_top: 24
+    margin_bottom: 12
+    border_bottom: "1px solid #E1E4E8"  # 标题下细线
+    numbering: false  # 技术文档通常不编号
+
+  h3:  # 节标题
+    font_size: 16
+    font_weight: "bold"
+    text_align: "left"
+    color: "#0366D6"
+    margin_top: 16
+    margin_bottom: 8
+
+  h4:
+    font_size: 14
+    font_weight: "bold"
+    color: "#24292E"
+    margin_top: 16
+    margin_bottom: 8
+
+  h5:
+    font_size: 12
+    font_weight: "bold"
+    color: "#24292E"
+    margin_top: 12
+    margin_bottom: 6
+
+  h6:
+    font_size: 10.5
+    font_weight: "normal"
+    color: "#24292E"
+    margin_top: 12
+    margin_bottom: 6
+
+# 表格样式
+tables:
+  border_collapse: true
+  border_width: 1
+  border_style: "solid"
+  border_color: "#E1E4E8"  # 浅灰边框
+  cell_padding: 6
+
+  # 表题样式
+  caption:
+    position: "above"
+    text_align: "left"
+    font_size: 10.5
+    font_weight: "bold"
+    color: "#0366D6"
+    numbering: false  # 技术文档通常不编号
+
+  style: "full_grid"
+  header_row:
+    background_color: "#F6F8FA"  # 表头浅灰背景
+    font_weight: "bold"
+    color: "#24292E"
+    border_bottom: "2px solid #E1E4E8"  # 表头底部粗线
+
+# 图片样式
+images:
+  max_width: "100%"
+  align: "left"
+
+  # 图题样式
+  caption:
+    position: "below"
+    text_align: "left"
+    font_size: 10
+    font_weight: "normal"
+    color: "#586069"  # 灰色
+    numbering: false
+
+  embedding: "base64"
+  max_dimension: 1920
+  quality: 90
+
+# 公式样式
+formulas:
+  format: "script"  # 技术文档需要可编辑的公式
+  numbering: false  # 通常不编号
+
+# 列表样式
+lists:
+  ordered:
+    style: "arabic"
+    indent: 2
+
+  unordered:
+    marker: "disc"
+    indent: 2
+
+  spacing:
+    between_items: 2
+    after_list: 8
+
+  # 任务列表（GitHub风格）
+  task_list:
+    enable: true
+    checkbox_style: "square"
+
+# 代码块样式（重点）
+code_blocks:
+  font_family: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace"
+  font_size: 9.5  # 等宽字体稍小
+  background_color: "#F6F8FA"  # GitHub代码块背景
+  border: "1px solid #E1E4E8"
+  border_color: "#E1E4E8"
+  border_radius: 3  # 圆角（注意：Word可能不支持）
+  padding: 12
+  line_height: 1.4  # 代码行距较小
+  wrap: true  # 自动换行
+  max_width: "100%"
+
+  # 语法高亮（基于语言）
+  syntax_highlight:
+    enable: true
+    theme: "github_light"  # github_light | github_dark | monokai
+
+  # 行号
+  line_numbers:
+    enable: false  # 可选
+
+# 行内代码样式
+inline_code:
+  font_family: "Consolas, Monaco, monospace"
+  font_size: 9.5
+  background_color: "#E1E4E8"  # 浅灰背景
+  color: "#24292E"
+  padding: 2 4  # 上下2px，左右4px
+  border_radius: 3
+
+# 引用样式
+blockquotes:
+  font_style: "normal"
+  left_indent: "0"
+  right_indent: "0"
+  border_left: "4px solid #DFF2E8"  # 绿色左边框
+  background_color: "#F0FFF4"  # 浅绿背景
+  padding_left: 12
+  padding_top: 8
+  padding_bottom: 8
+  color: "#24292E"
+
+  # 特殊类型引用
+  types:
+    note:
+      border_color: "#0366D6"  # 蓝色
+      background_color: "#F6F8FA"
+      title: "注意："
+    warning:
+      border_color: "#B08800"  # 黄色
+      background_color: "#FFFBDD"
+      title: "警告："
+    error:
+      border_color: "#CB2431"  # 红色
+      background_color: "#ffeef0"
+      title: "错误："
+    tip:
+      border_color: "#28A745"  # 绿色
+      background_color: "#F0FFF4"
+      title: "提示："
+
+# 强调样式
+emphasis:
+  bold:
+    color: "#24292E"
+    font_weight: "bold"
+  italic:
+    color: "#586069"
+  highlight:
+    background_color: "#FFFBDD"  # 黄色高亮
+    color: "#24292E"
+
+# 功能开关
+features:
+  enable_columns: false  # 技术文档通常不用多栏
+  enable_tables: true
+  enable_lists: true
+  enable_code_blocks: true  # 重点
+  enable_blockquotes: true
+  enable_horizontal_rules: true
+
+# 高级功能
+advanced:
+  # API文档特殊样式
+  api_documentation:
+    enable: true
+
+    # 端点样式
+    endpoint:
+      method_color: "#FFFFFF"  # HTTP方法颜色
+      method_background:
+        GET: "#28A745"  # 绿色
+        POST: "#0366D6"  # 蓝色
+        PUT: "#F6A945"  # 橙色
+        DELETE: "#CB2431"  # 红色
+        PATCH: "#6F42C1"  # 紫色
+
+      font_family: "Consolas, monospace"
+      font_size: 9.5
+      padding: 4 8
+      border_radius: 4
+
+    # 参数表格
+    parameter_table:
+      name_width: "20%"
+      type_width: "15%"
+      description_width: "65%"
+
+  # 流程图支持
+  diagrams:
+    enable: true
+    supported_formats: ["mermaid", "plantuml"]
+
+  # 键盘快捷键样式
+  keyboard_shortcuts:
+    font_family: "Consolas, monospace"
+    font_size: 9
+    background_color: "#FAFAFA"
+    border: "1px solid #CCCCCC"
+    border_radius: 3
+    padding: 2 6
+    box_shadow: "0 1px 1px rgba(0,0,0,0.2)"
+
+  # 链接样式
+  external_links:
+    icon: true  # 外部链接显示图标
+    color: "#0366D6"
+    text_decoration: "underline"
+
+  # 目录（GitHub风格）
+  table_of_contents:
+    enable: true
+    max_level: 3
+    title: "目录"
+    font_size: 14
+    font_weight: "bold"
+    color: "#0366D6"
+    position: "after_h1"  # 在一级标题后
+
+# 输出选项
+output:
+  include_mathjax: true  # 技术文档可能需要公式
+  pretty_print: true
+  encoding: "utf-8"
+
+# 元数据
+metadata:
+  # 技术文档默认元数据
+  title: ""
+  version: ""  # 版本号
+  api_version: ""  # API版本
+  last_updated: ""  # 最后更新时间
+  author: ""
+  repository: ""  # 仓库链接
+  license: ""  # 许可证
+  language: "zh-CN"

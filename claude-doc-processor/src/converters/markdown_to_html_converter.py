@@ -34,17 +34,19 @@ sys.path.insert(0, project_root)
 from src.converters.base import BaseConverter
 from src.utils.markdown_parser import MarkdownParser
 from src.utils.word_html_generator import WordHTMLGenerator
+from src.utils.template_loader import TemplateLoader
 
 
 class MarkdownToHTMLConverter(BaseConverter):
     """Markdown 到 Word 兼容 HTML 转换器"""
 
-    def __init__(self, config_path: str = None):
+    def __init__(self, config_path: str = None, template_name: str = None):
         """
         初始化转换器
 
         Args:
             config_path: 配置文件路径
+            template_name: 模板名称（可选）
         """
         super().__init__(config_path)
 
@@ -53,6 +55,18 @@ class MarkdownToHTMLConverter(BaseConverter):
 
         # 获取转换器配置
         self.converter_config = self.config.get('markdown_to_html', {})
+
+        # 如果指定了模板，加载模板配置并合并
+        if template_name:
+            template_loader = TemplateLoader()
+            template_config = template_loader.get_template_config_for_html_generator(template_name)
+
+            if template_config:
+                # 合并模板配置到默认配置
+                self.converter_config.update(template_config)
+                self.logger.info(f"已加载模板: {template_name}")
+            else:
+                self.logger.warning(f"模板 '{template_name}' 加载失败，使用默认配置")
 
         # 初始化 HTML 生成器
         self.html_generator = WordHTMLGenerator(

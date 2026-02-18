@@ -78,6 +78,7 @@ class UnifiedConverter(BaseConverter):
         input_path: str,
         output_dir: str,
         max_pages: int = None,
+        start_page: int = 1,
         enable_content_refinement: bool = None
     ) -> Tuple[bool, str, Dict]:
         """
@@ -87,6 +88,7 @@ class UnifiedConverter(BaseConverter):
             input_path: 输入文件路径（PDF或DOCX）
             output_dir: 输出目录
             max_pages: 最大处理页数（None表示全部）
+            start_page: 起始页码（从1开始，默认为1）
             enable_content_refinement: 是否启用Stage 3.5内容整理
 
         Returns:
@@ -105,6 +107,10 @@ class UnifiedConverter(BaseConverter):
         # 更新配置
         if max_pages is None:
             max_pages = self.max_pages
+
+        # 调整start_page（从1开始转为从0开始）
+        start_page_0based = max(0, start_page - 1)
+
         if enable_content_refinement is None:
             enable_content_refinement = self.enable_content_refinement
 
@@ -113,7 +119,7 @@ class UnifiedConverter(BaseConverter):
         self.logger.info("=" * 70)
         self.logger.info(f"输入: {input_path}")
         self.logger.info(f"输出: {output_dir}")
-        self.logger.info(f"页数限制: {max_pages or '全部'}")
+        self.logger.info(f"页数范围: 第{start_page}页开始，最多{max_pages or '全部'}页")
         self.logger.info(f"内容整理(Stage 3.5): {'启用' if enable_content_refinement else '禁用'}")
 
         try:
@@ -128,14 +134,14 @@ class UnifiedConverter(BaseConverter):
 
             # ========== Stage 2: 图片提取（分支选择） ==========
             all_images = self._stage2_extract_images(
-                pdf_path, output_dir, docx_images, pdf_type, max_pages
+                pdf_path, output_dir, docx_images, pdf_type, start_page_0based, max_pages
             )
             self.stats['total_images'] = len(all_images)
             self.stats['stages_completed'].append(f'Stage 2: 图片提取 ({len(all_images)}张)')
 
             # ========== Stage 3: OCR识别（GLM逐页） ==========
             markdown_pages, all_placeholders = self._stage3_ocr_pages(
-                pdf_path, max_pages, enable_content_refinement
+                pdf_path, start_page_0based, max_pages, enable_content_refinement
             )
             self.stats['stages_completed'].append('Stage 3: OCR识别')
 
@@ -324,6 +330,7 @@ class UnifiedConverter(BaseConverter):
         output_dir: str,
         docx_images: List[Dict],
         pdf_type: str,
+        start_page: int = 0,
         max_pages: int = None
     ) -> List[Dict]:
         """
@@ -332,16 +339,32 @@ class UnifiedConverter(BaseConverter):
         根据PDF类型选择提取策略：
         - 文档型：使用DOCX提取的图片（如果有）
         - 扫描型：使用OpenCV提取
+
+        Args:
+            pdf_path: PDF文件路径
+            output_dir: 输出目录
+            docx_images: DOCX提取的图片列表
+            pdf_type: PDF类型（document/scanned）
+            start_page: 起始页码（0-based）
+            max_pages: 最大处理页数
         """
         self.logger.info("\n" + "=" * 60)
         self.logger.info("Stage 2: 图片提取（分支选择）")
         self.logger.info("=" * 60)
         self.logger.info(f"  PDF类型: {pdf_type}")
+        self.logger.info(f"  起始页码: {start_page + 1}")
+        if max_pages:
+            self.logger.info(f"  最大页数: {max_pages}")
 
         # 分支1: 文档型PDF + 有DOCX图片 → 使用DOCX图片
         if pdf_type == self.PDF_TYPE_DOCUMENT and docx_images:
             self.logger.info(f"  策略: 使用DOCX嵌入图片（{len(docx_images)}张）")
-            return docx_images
+            # 过滤出指定页码范围的图片
+            filtered_images = [img for img in docx_images
+                             if img.get('page', 0) >= start_page and
+                             (max_pages is None or img.get('page', 0) < start_page + max_pages)]
+            self.logger.info(f"  过滤后图片数: {len(filtered_images)}张")
+            return filtered_images
 
         # 分支2: 扫描型PDF 或 无DOCX图片 → OpenCV提取
         self.logger.info("  策略: OpenCV精确提取")
@@ -349,7 +372,8 @@ class UnifiedConverter(BaseConverter):
             pdf_path,
             output_dir,
             self.dpi,
-            max_pages,
+            start_page=start_page,
+            max_pages=max_pages,
             use_opencv=True
         )
 
@@ -362,6 +386,7 @@ class UnifiedConverter(BaseConverter):
     def _stage3_ocr_pages(
         self,
         pdf_path: str,
+        start_page: int = 0,
         max_pages: int = None,
         enable_content_refinement: bool = False
     ) -> Tuple[List[str], List[Dict]]:
@@ -369,6 +394,12 @@ class UnifiedConverter(BaseConverter):
         Stage 3: OCR识别（GLM逐页）
 
         逐页OCR识别，可选Stage 3.5内容整理
+
+        Args:
+            pdf_path: PDF文件路径
+            start_page: 起始页码（0-based）
+            max_pages: 最大处理页数
+            enable_content_refinement: 是否启用内容整理
 
         Returns:
             (markdown页面列表, 所有占位符列表)
@@ -378,23 +409,30 @@ class UnifiedConverter(BaseConverter):
         if enable_content_refinement:
             self.logger.info("  + Stage 3.5: 逐页内容整理（启用）")
         self.logger.info("=" * 60)
+        self.logger.info(f"  起始页码: {start_page + 1}")
+        if max_pages:
+            self.logger.info(f"  最大页数: {max_pages}")
 
         # 打开PDF
         doc = fitz.open(pdf_path)
         total_pages = len(doc)
 
-        # 限制页数
-        if max_pages is None:
-            max_pages = total_pages
-        else:
-            max_pages = min(max_pages, total_pages)
+        # 计算实际处理的页数范围
+        end_page = min(start_page + max_pages, total_pages) if max_pages else total_pages
+        actual_pages = end_page - start_page
+
+        self.logger.info(f"  总页数: {total_pages}")
+        self.logger.info(f"  实际处理: {actual_pages}页 (第{start_page + 1}页到第{end_page}页)")
 
         markdown_pages = []
         all_placeholders = []
 
         # 逐页处理
-        for page_num in range(max_pages):
-            self.logger.info(f"\n处理第 {page_num + 1}/{max_pages} 页...")
+        for page_idx in range(actual_pages):
+            page_num = start_page + page_idx  # 实际页码（0-based）
+            display_page_num = page_num + 1    # 显示页码（1-based）
+
+            self.logger.info(f"\n处理第 {display_page_num}/{total_pages} 页...")
 
             page = doc[page_num]
 
@@ -426,7 +464,7 @@ class UnifiedConverter(BaseConverter):
             # Stage 3.5: 内容整理（可选）
             if enable_content_refinement:
                 self.logger.info(f"  Stage 3.5: DeepSeek内容整理...")
-                page_markdown = self._format_page_with_deepseek(page_markdown, page_num + 1)
+                page_markdown = self._format_page_with_deepseek(page_markdown, display_page_num)
                 self.logger.info(f"  ✓ 内容整理完成")
 
             markdown_pages.append(page_markdown)
@@ -434,7 +472,7 @@ class UnifiedConverter(BaseConverter):
         doc.close()
 
         self.logger.info(f"\n✅ Stage 3 完成!")
-        self.logger.info(f"  总共识别: {max_pages} 页")
+        self.logger.info(f"  总共识别: {actual_pages} 页")
         self.logger.info(f"  图片占位符: {len(all_placeholders)} 个")
 
         return markdown_pages, all_placeholders

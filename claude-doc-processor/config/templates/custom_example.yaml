@@ -1,0 +1,297 @@
+# 自定义模板示例
+# 这是一个示例文件，展示如何创建你自己的模板
+
+template_name: "我的自定义模板"
+template_description: "这是一个示例模板，你可以基于此创建自己的样式"
+template_version: "1.0.0"
+template_author: "Your Name"
+
+# ========================================================================
+# 样式配置
+# ========================================================================
+styles:
+  # 字体配置
+  fonts:
+    default: "宋体"           # 中文默认字体
+    western: "Arial"          # 西文默认字体
+    heading: "黑体"           # 标题字体（中文）
+    heading_western: "Arial"  # 标题字体（西文）
+    code: "Courier New"       # 代码字体
+
+  # 字号配置（单位：pt）
+  font_sizes:
+    body: 12       # 正文
+    heading1: 24   # 一级标题
+    heading2: 18   # 二级标题
+    heading3: 16   # 三级标题
+    heading4: 14   # 四级标题
+    heading5: 12   # 五级标题
+    heading6: 12   # 六级标题
+    caption: 10.5  # 图表标题
+    code: 10       # 代码字号
+    footnote: 9    # 脚注
+
+  # 行距和间距
+  spacing:
+    line_height: 1.6              # 行高倍数（1.0-2.0）
+    paragraph_spacing_before: 0   # 段前间距（pt）
+    paragraph_spacing_after: 12   # 段后间距（pt）
+    heading_spacing_before: 18    # 标题前间距（pt）
+    heading_spacing_after: 6      # 标题后间距（pt）
+
+  # 颜色配置
+  colors:
+    text: "#000000"        # 正文颜色（十六进制）
+    heading: "#000000"     # 标题颜色
+    link: "#0000FF"        # 链接颜色
+    table_border: "#000000"              # 表格边框颜色
+    table_header_bg: "#CCCCCC"           # 表头背景色
+    emphasis: "#FF0000"                   # 强调色
+    highlight: "#FFFF00"                  # 高亮色
+
+# ========================================================================
+# 页面布局
+# ========================================================================
+layout:
+  page_size: "A4"  # 页面尺寸：A4, Letter, Legal等
+  margins:
+    top: "2.54cm"     # 上边距
+    bottom: "2.54cm"  # 下边距
+    left: "3.17cm"    # 左边距
+    right: "3.17cm"   # 右边距
+
+  # 段落设置
+  paragraph:
+    first_line_indent: "2em"  # 首行缩进（0em表示不缩进）
+    text_align: "justify"     # 对齐方式：left, center, right, justify
+    widow_orphan_control: true  # 孤行控制
+
+# ========================================================================
+# 标题样式
+# ========================================================================
+headings:
+  h1:  # 一级标题
+    font_size: 24
+    font_weight: "bold"       # bold | normal
+    text_align: "center"      # left | center | right
+    color: "#000000"          # 可选，覆盖全局颜色
+    margin_top: 24
+    margin_bottom: 18
+    page_break_before: false  # 是否在标题前分页
+    numbering: false          # 是否自动编号
+    border_bottom: "none"     # 底部边框：none | 1pt solid #color
+
+  h2:  # 二级标题
+    font_size: 18
+    font_weight: "bold"
+    text_align: "left"
+    margin_top: 18
+    margin_bottom: 12
+    numbering: true           # 启用编号
+
+  h3:  # 三级标题
+    font_size: 16
+    font_weight: "bold"
+    margin_top: 12
+    margin_bottom: 6
+    numbering: true
+
+  h4:
+    font_size: 14
+    font_weight: "bold"
+    margin_top: 12
+    margin_bottom: 6
+
+  h5:
+    font_size: 12
+    font_weight: "bold"
+    margin_top: 12
+    margin_bottom: 6
+
+  h6:
+    font_size: 12
+    font_weight: "normal"
+    margin_top: 12
+    margin_bottom: 6
+
+# ========================================================================
+# 表格样式
+# ========================================================================
+tables:
+  border_collapse: true  # 合并边框
+  border_width: 0.5      # 边框宽度（pt）
+  border_style: "solid"  # 边框样式：solid | dashed | dotted
+  border_color: "#000000"
+  cell_padding: 4        # 单元格内边距（pt）
+
+  # 表题样式
+  caption:
+    position: "above"     # above（表题在上方） | below（图题在下方）
+    text_align: "center"  # left | center | right
+    font_size: 10.5
+    font_weight: "bold"
+    numbering: false      # 自动编号（表1、表2）
+
+  # 表格样式
+  style: "full_grid"     # full_grid（全边框） | three_line（三线表）
+
+  # 表头行样式
+  header_row:
+    background_color: "#F0F0F0"  # 表头背景色
+    font_weight: "bold"
+    color: "#000000"
+    border_bottom: "1.5pt solid #000000"  # 表头底部边框
+
+  # 斑马纹（可选）
+  zebra_striping: false   # 是否启用斑马纹
+  zebra_color: "#F9F9F9" # 斑马纹颜色
+
+# ========================================================================
+# 图片样式
+# ========================================================================
+images:
+  max_width: "85%"  # 图片最大宽度（%或具体像素值）
+  align: "center"   # left | center | right
+
+  # 图题样式
+  caption:
+    position: "below"
+    text_align: "center"
+    font_size: 10.5
+    font_weight: "bold"
+    numbering: false  # 自动编号（图1、图2）
+
+  # 图片嵌入方式
+  embedding: "base64"     # base64（嵌入） | relative（相对路径） | hybrid（混合）
+  max_dimension: 1920     # 最大尺寸（像素）
+  quality: 90             # JPEG压缩质量（1-100）
+
+# ========================================================================
+# 公式样式
+# ========================================================================
+formulas:
+  format: "script"   # script（可编辑MathML） | text（纯文本） | image（图片）
+  numbering: false   # 是否自动编号
+  numbering_position: "right"  # 编号位置：left | right
+
+# ========================================================================
+# 列表样式
+# ========================================================================
+lists:
+  ordered:  # 有序列表
+    style: "arabic"    # arabic（1,2,3） | roman（I,II,III） | letter（a,b,c）
+    indent: 2          # 缩进字符数
+
+  unordered:  # 无序列表
+    marker: "disc"     # disc（实心圆） | circle（空心圆） | square（方块）
+    indent: 2
+
+  spacing:
+    between_items: 0   # 列表项之间间距（pt）
+    after_list: 12     # 列表后间距（pt）
+
+# ========================================================================
+# 代码块样式
+# ========================================================================
+code_blocks:
+  font_family: "Courier New, monospace"
+  font_size: 10
+  background_color: "#F5F5F5"
+  border: "1pt solid #CCCCCC"
+  padding: 8
+  line_height: 1.3
+  wrap: true  # 是否自动换行
+
+  # 语法高亮（可选）
+  syntax_highlight:
+    enable: false
+    theme: "github_light"
+
+# ========================================================================
+# 引用样式
+# ========================================================================
+blockquotes:
+  font_style: "italic"  # italic | normal
+  left_indent: "2em"
+  right_indent: "0"
+  border_left: "4pt solid #CCCCCC"
+  padding_left: 12
+
+  # 可选：背景色
+  background_color: "transparent"
+
+# ========================================================================
+# 强调样式
+# ========================================================================
+emphasis:
+  bold:
+    color: "#000000"
+    font_weight: "bold"
+  italic:
+    color: "#000000"
+  highlight:
+    background_color: "#FFFF00"
+
+# ========================================================================
+# 功能开关
+# ========================================================================
+features:
+  enable_columns: false  # 是否启用多栏布局
+  enable_tables: true
+  enable_lists: true
+  enable_code_blocks: true
+  enable_blockquotes: true
+  enable_horizontal_rules: true  # 水平分割线
+
+# ========================================================================
+# 高级功能（可选）
+# ========================================================================
+advanced:
+  # 目录
+  table_of_contents:
+    enable: false
+    max_level: 3
+    title: "目录"
+    font_size: 14
+    font_weight: "bold"
+
+  # 封面页
+  cover_page:
+    enable: false
+    title:
+      font_size: 28
+      font_weight: "bold"
+      align: "center"
+      margin_top: 8
+
+# ========================================================================
+# 页眉页脚（可选）
+# ========================================================================
+header_footer:
+  header:
+    enable: false
+    text: "{title} | {date}"
+    font_size: 9
+    align: "center"
+
+  footer:
+    enable: false
+    text: "第 {page} 页"
+    font_size: 9
+    align: "center"
+
+# ========================================================================
+# 输出选项
+# ========================================================================
+output:
+  include_mathjax: false  # 是否包含MathJax（浏览器预览用）
+  pretty_print: true      # 是否美化HTML输出
+  encoding: "utf-8"       # 文件编码
+
+# ========================================================================
+# 元数据
+# ========================================================================
+metadata:
+  title: ""
+  author: ""
+  date: ""

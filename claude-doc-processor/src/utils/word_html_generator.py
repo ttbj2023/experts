@@ -106,70 +106,174 @@ class WordHTMLGenerator:
 
     def _generate_styles(self) -> str:
         """
-        生成 Word 兼容的 CSS 样式
+        生成 Word 兼容的 CSS 样式（完全从模板配置读取）
 
         Returns:
             style 标签内的 CSS 内容
         """
+        # ========== 从配置读取样式参数 ==========
+        # 字体和颜色
+        font_family = self.config.get('default_font', '宋体')
+        western_font = self.config.get('western_font', 'Times New Roman')
+        heading_font = self.config.get('heading_font', '黑体')
+        text_color = self.config.get('text_color', '#000000')
+        heading_color = self.config.get('heading_color', '#000000')
+        link_color = self.config.get('link_color', '#0000FF')
+
+        # 字号
+        body_font_size = self.config.get('default_font_size', 12)
+        h1_size = self.config.get('heading1_size', 18)
+        h2_size = self.config.get('heading2_size', 16)
+        h3_size = self.config.get('heading3_size', 14)
+        h4_size = self.config.get('heading4_size', 12)
+        h5_size = self.config.get('heading5_size', 12)
+        h6_size = self.config.get('heading6_size', 12)
+
+        # 行距
+        line_height = self.config.get('line_height', 1.5)
+
+        # 页面边距
+        page_margin_top = self.config.get('page_margin_top', '20pt')
+        page_margin_bottom = self.config.get('page_margin_bottom', '20pt')
+        page_margin_left = self.config.get('page_margin_left', '30pt')
+        page_margin_right = self.config.get('page_margin_right', '30pt')
+        body_padding_top = self.config.get('page_padding_top', page_margin_top)
+        body_padding_bottom = self.config.get('page_padding_bottom', page_margin_bottom)
+        body_padding_left = self.config.get('page_padding_left', page_margin_left)
+        body_padding_right = self.config.get('page_padding_right', page_margin_right)
+
+        # 段落样式
+        para_first_line_indent = self.config.get('paragraph_first_line_indent', '2em')
+        para_text_align = self.config.get('paragraph_text_align', 'justify')
+        para_spacing_before = self.config.get('paragraph_spacing_before', 0)
+        para_spacing_after = self.config.get('paragraph_spacing_after', 12)
+
+        # 标题样式
+        h1_align = self.config.get('heading1_align', 'center')
+        h1_margin_top = self.config.get('heading1_margin_top', 24)
+        h1_margin_bottom = self.config.get('heading1_margin_bottom', 18)
+        h1_page_break_before = self.config.get('heading1_page_break_before', False)
+
+        h2_align = self.config.get('heading2_align', 'left')
+        h2_margin_top = self.config.get('heading2_margin_top', 18)
+        h2_margin_bottom = self.config.get('heading2_margin_bottom', 12)
+        h2_page_break_before = self.config.get('heading2_page_break_before', False)
+
+        h3_align = self.config.get('heading3_align', 'left')
+        h3_margin_top = self.config.get('heading3_margin_top', 14)
+        h3_margin_bottom = self.config.get('heading3_margin_bottom', 6)
+
+        h4_align = self.config.get('heading4_align', 'left')
+        h4_margin_top = self.config.get('heading4_margin_top', 12)
+        h4_margin_bottom = self.config.get('heading4_margin_bottom', 6)
+
+        # 表格样式
+        table_border_color = self.config.get('table_border_color', '#000000')
+        table_border_width = self.config.get('table_border_width', '1px')
+        table_cell_padding = self.config.get('table_cell_padding', '4pt')
+        table_header_bg = self.config.get('table_header_bg', '#f0f0f0')
+
+        # 代码块样式
+        code_font = self.config.get('code_font', 'Courier New')
+        code_bg = self.config.get('code_background_color', '#f5f5f5')
+        code_padding = self.config.get('code_padding', '10pt')
+
+        # 标书特殊配置
+        table_content_font_size = self.config.get('table_content_font_size', 10.5)
+        caption_font_size = self.config.get('heading1_size', 16)  # 标书标题字号
+
+        # 生成CSS
         styles = f'''    <style type="text/css">
         /* ==================== 全局样式 ==================== */
         body {{
-            font-family: '{self.font_family}', 'Times New Roman', serif;
-            font-size: {self.font_size}pt;
-            line-height: {self.line_height};
+            font-family: '{font_family}', '{western_font}', serif;
+            font-size: {body_font_size}pt;
+            line-height: {line_height};
+            color: {text_color};
             margin: 0;
-            padding: 20pt 30pt;
+            padding: {body_padding_top} {body_padding_right} {body_padding_bottom} {body_padding_left};
+            text-align: {para_text_align};
         }}
 
         /* ==================== 标题样式 ==================== */
         h1 {{
-            font-size: 18pt;
+            font-family: '{heading_font}', '{font_family}', sans-serif;
+            font-size: {h1_size}pt;
             font-weight: bold;
-            margin: 12pt 0;
+            color: {heading_color};
+            text-align: {h1_align};
+            margin-top: {h1_margin_top}pt;
+            margin-bottom: {h1_margin_bottom}pt;
             page-break-after: avoid;
+            {'page-break-before: always;' if h1_page_break_before else ''}
         }}
 
         h2 {{
-            font-size: 16pt;
+            font-family: '{heading_font}', '{font_family}', sans-serif;
+            font-size: {h2_size}pt;
             font-weight: bold;
-            margin: 10pt 0;
+            color: {heading_color};
+            text-align: {h2_align};
+            margin-top: {h2_margin_top}pt;
+            margin-bottom: {h2_margin_bottom}pt;
             page-break-after: avoid;
+            {'page-break-before: always;' if h2_page_break_before else ''}
         }}
 
         h3 {{
-            font-size: 14pt;
+            font-family: '{heading_font}', '{font_family}', sans-serif;
+            font-size: {h3_size}pt;
             font-weight: bold;
-            margin: 8pt 0;
+            color: {heading_color};
+            text-align: {h3_align};
+            margin-top: {h3_margin_top}pt;
+            margin-bottom: {h3_margin_bottom}pt;
             page-break-after: avoid;
         }}
 
         h4 {{
-            font-size: 12pt;
+            font-family: '{heading_font}', '{font_family}', sans-serif;
+            font-size: {h4_size}pt;
             font-weight: bold;
-            margin: 6pt 0;
+            color: {heading_color};
+            text-align: {h4_align};
+            margin-top: {h4_margin_top}pt;
+            margin-bottom: {h4_margin_bottom}pt;
             page-break-after: avoid;
         }}
 
         h5 {{
-            font-size: 11pt;
+            font-family: '{heading_font}', '{font_family}', sans-serif;
+            font-size: {h5_size}pt;
             font-weight: bold;
-            margin: 5pt 0;
+            color: {heading_color};
+            margin-top: 12pt;
+            margin-bottom: 6pt;
         }}
 
         h6 {{
-            font-size: 10pt;
-            font-weight: bold;
-            margin: 4pt 0;
+            font-family: '{heading_font}', '{font_family}', sans-serif;
+            font-size: {h6_size}pt;
+            font-weight: normal;
+            color: {heading_color};
+            margin-top: 12pt;
+            margin-bottom: 6pt;
         }}
 
         /* ==================== 段落样式 ==================== */
         p {{
-            margin: 5pt 0;
-            text-indent: 2em;
+            margin-top: {para_spacing_before}pt;
+            margin-bottom: {para_spacing_after}pt;
+            text-indent: {para_first_line_indent};
+            text-align: {para_text_align};
         }}
 
         p.no-indent {{
             text-indent: 0;
+        }}
+
+        p.center {{
+            text-align: center;
         }}
 
         /* ==================== 文本样式 ==================== */
@@ -200,14 +304,19 @@ class WordHTMLGenerator:
         }}
 
         code {{
-            font-family: 'Courier New', monospace;
-            background-color: #f5f5f5;
+            font-family: '{code_font}', monospace;
+            background-color: {code_bg};
             padding: 2pt 4pt;
+        }}
+
+        a {{
+            color: {link_color};
+            text-decoration: underline;
         }}
 
         /* ==================== 列表样式 ==================== */
         ul, ol {{
-            margin: 5pt 0;
+            margin: {para_spacing_before}pt {para_spacing_after}pt;
             padding-left: 20pt;
         }}
 
@@ -227,15 +336,35 @@ class WordHTMLGenerator:
             margin: 10pt 0;
         }}
 
-        td, th {{
-            border: 1px solid #000;
-            padding: 4pt;
+        td {{
+            border: {table_border_width} solid {table_border_color};
+            padding: {table_cell_padding};
             text-align: center;
+            font-size: {table_content_font_size}pt;  /* 表格内容字号 */
         }}
 
         th {{
+            border: {table_border_width} solid {table_border_color};
+            padding: {table_cell_padding};
+            text-align: center;
             font-weight: bold;
-            background-color: #f0f0f0;
+            background-color: {table_header_bg};
+            font-size: {caption_font_size}pt;  /* 表标题字号 */
+        }}
+
+        /* 表图标题样式 */
+        .table-caption {{
+            text-align: center;
+            font-size: {caption_font_size}pt;
+            font-weight: bold;
+            margin: 8pt 0;
+        }}
+
+        .figure-caption {{
+            text-align: center;
+            font-size: {caption_font_size}pt;
+            font-weight: bold;
+            margin: 5pt 0;
         }}
 
         /* ==================== 图片样式 ==================== */
@@ -252,13 +381,6 @@ class WordHTMLGenerator:
             break-inside: avoid;
         }}
 
-        .figure-caption {{
-            text-align: center;
-            font-size: 9.5pt;
-            margin: 5pt 0;
-            text-indent: 0;
-        }}
-
         /* ==================== 公式样式 ==================== */
         .formula-block {{
             margin: 8pt 0;
@@ -268,10 +390,10 @@ class WordHTMLGenerator:
 
         /* ==================== 代码块样式 ==================== */
         pre {{
-            background-color: #f5f5f5;
-            padding: 10pt;
+            background-color: {code_bg};
+            padding: {code_padding};
             margin: 10pt 0;
-            font-family: 'Courier New', monospace;
+            font-family: '{code_font}', monospace;
             white-space: pre;
             break-inside: avoid;
         }}
@@ -299,7 +421,158 @@ class WordHTMLGenerator:
             color: #666;
         }}
 
-        /* ==================== 水平分隔线 ==================== */
+        /* ==================== 技术文档特殊样式 ==================== */
+        /* 特殊提示框样式 */
+        .callout {{
+            margin: 10pt 0;
+            padding: 8pt 12pt;
+            border-left: 4pt solid;
+            break-inside: avoid;
+        }}
+
+        .callout-note {{
+            border-color: #0366D6;
+            background-color: #F6F8FA;
+        }}
+
+        .callout-warning {{
+            border-color: #B08800;
+            background-color: #FFFBDD;
+        }}
+
+        .callout-error {{
+            border-color: #CB2431;
+            background-color: #ffeef0;
+        }}
+
+        .callout-tip {{
+            border-color: #28A745;
+            background-color: #F0FFF4;
+        }}
+
+        .callout-title {{
+            font-weight: bold;
+            margin-bottom: 4pt;
+        }}
+
+        /* API端点样式 */
+        .api-endpoint {{
+            margin: 10pt 0;
+            padding: 8pt;
+            background-color: #F6F8FA;
+            border: 1px solid #E1E4E8;
+            border-radius: 6px;
+            font-family: '{code_font}', monospace;
+        }}
+
+        .api-method {{
+            display: inline-block;
+            padding: 2pt 6pt;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 9pt;
+            color: #FFFFFF;
+            margin-right: 8pt;
+        }}
+
+        .api-method-GET {{ background-color: #28A745; }}
+        .api-method-POST {{ background-color: #0366D6; }}
+        .api-method-PUT {{ background-color: #F6A945; }}
+        .api-method-DELETE {{ background-color: #CB2431; }}
+        .api-method-PATCH {{ background-color: #6F42C1; }}
+
+        .api-path {{
+            font-weight: bold;
+            color: #24292E;
+        }}
+
+        /* 键盘快捷键样式 */
+        kbd {{
+            display: inline-block;
+            padding: 2pt 6pt;
+            font-family: '{code_font}', monospace;
+            font-size: 9pt;
+            background-color: #FAFAFA;
+            border: 1px solid #CCCCCC;
+            border-radius: 3pt;
+            box-shadow: 0 1pt 1px rgba(0,0,0,0.2);
+        }}
+
+        /* 标签样式 */
+        .tag {{
+            display: inline-block;
+            padding: 2pt 6pt;
+            font-size: 8pt;
+            border-radius: 10pt;
+            background-color: #F6F8FA;
+            color: #586069;
+            border: 1px solid #E1E4E8;
+            margin: 0 2pt;
+        }}
+
+        /* 版本标签样式 */
+        .version-badge {{
+            display: inline-block;
+            padding: 2pt 6pt;
+            font-size: 8pt;
+            border-radius: 3pt;
+            background-color: #0366D6;
+            color: #FFFFFF;
+            font-weight: bold;
+        }}
+
+        /* 代码语言标签 */
+        .code-language {{
+            display: inline-block;
+            padding: 2pt 6pt;
+            font-size: 8pt;
+            border-radius: 3pt 3pt 0 0;
+            background-color: #E1E4E8;
+            color: #586069;
+            font-family: '{code_font}', monospace;
+            margin-bottom: -4pt;
+        }}
+
+        /* 链接样式增强 */
+        a.external {{
+            padding-right: 12pt;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16"><path fill="%230366D6" d="M10.5 8.5L14 12l-3.5 3.5M14 8H6v8h8"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right center;
+        }}
+
+        /* 参数表格样式 */
+        table.parameter-table td:nth-child(1) {{
+            width: 20%;
+            font-weight: bold;
+            font-family: '{code_font}', monospace;
+        }}
+
+        table.parameter-table td:nth-child(2) {{
+            width: 15%;
+            font-family: '{code_font}', monospace;
+            color: #0366D6;
+        }}
+
+        table.parameter-table td:nth-child(3) {{
+            width: 65%;
+        }}
+
+        /* 状态指示器 */
+        .status {{
+            display: inline-block;
+            width: 8pt;
+            height: 8pt;
+            border-radius: 50%;
+            margin-right: 4pt;
+        }}
+
+        .status-success {{ background-color: #28A745; }}
+        .status-warning {{ background-color: #F6A945; }}
+        .status-error {{ background-color: #CB2431; }}
+        .status-info {{ background-color: #0366D6; }}
+
+        /* 水平分隔线 ==================== */
         hr {{
             border: none;
             border-top: 1pt solid #ccc;
@@ -309,7 +582,7 @@ class WordHTMLGenerator:
         /* ==================== 页面控制 ==================== */
         @page {{
             size: A4;
-            margin: 20pt 30pt;
+            margin: {page_margin_top} {page_margin_right} {page_margin_bottom} {page_margin_left};
         }}
 
         /* 防止元素被拆分 */
@@ -319,7 +592,6 @@ class WordHTMLGenerator:
     </style>'''
 
         return styles
-
     def _generate_section(self, section: Dict[str, Any], images_dir: str = None, md_file_dir: str = None) -> str:
         """
         生成单个章节/元素的 HTML

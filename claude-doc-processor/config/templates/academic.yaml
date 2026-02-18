@@ -1,0 +1,236 @@
+# 学术论文模板
+# 适用于：毕业论文、学术期刊、研究报告
+# 特点：严格的格式规范、标准的学术排版、公式和参考文献支持
+
+template_name: "学术论文"
+template_description: "标准学术论文格式，Times New Roman + 宋体，严格标题层级，适合毕业论文和期刊投稿"
+template_version: "1.0.0"
+template_author: "Claude Doc Processor"
+
+# 样式配置
+styles:
+  # 字体配置（中西文分离）
+  fonts:
+    default: "宋体"  # 中文默认字体
+    western: "Times New Roman"  # 西文默认字体
+    heading: "黑体"  # 标题字体（中文）
+    heading_western: "Times New Roman"  # 标题字体（西文）
+    code: "Courier New"  # 代码字体
+
+  # 字号配置
+  font_sizes:
+    body: 12  # 小四号（正文）
+    heading1: 18  # 一级标题（论文标题）
+    heading2: 16  # 二级标题（章标题）
+    heading3: 14  # 三级标题（节标题）
+    heading4: 14  # 四级标题（小节标题）
+    heading5: 12  # 五级标题
+    heading6: 12  # 六级标题
+    caption: 10.5  # 图表标题（五号）
+    footnote: 9  # 脚注
+
+  # 行距和间距
+  spacing:
+    line_height: 1.5  # 1.5倍行距（学术标准）
+    paragraph_spacing_before: 0  # 段前间距
+    paragraph_spacing_after: 12  # 段后间距（0.5行）
+    heading_spacing_before: 18  # 标题前间距（0.75行）
+    heading_spacing_after: 6  # 标题后间距（0.25行）
+
+  # 颜色配置
+  colors:
+    text: "#000000"  # 纯黑
+    heading: "#000000"  # 标题纯黑
+    link: "#0000FF"  # 链接蓝色
+    table_border: "#000000"  # 表格边框黑色
+
+# 页面布局
+layout:
+  page_size: "A4"
+  margins:
+    top: "2.54cm"  # 标准学术边距（1英寸）
+    bottom: "2.54cm"
+    left: "3.17cm"  # 左边距稍大（1.25英寸，便于装订）
+    right: "3.17cm"
+
+  # 段落设置
+  paragraph:
+    first_line_indent: "2em"  # 首行缩进2字符
+    text_align: "justify"  # 两端对齐
+    widow_orphan_control: true  # 孤行控制
+
+# 标题样式
+headings:
+  h1:  # 论文标题
+    font_size: 18
+    font_weight: "bold"
+    text_align: "center"
+    margin_top: 24
+    margin_bottom: 18
+    page_break_before: true  # 标题前分页
+    numbering: false  # 一级标题不编号
+
+  h2:  # 章标题（如：第一章 绪论）
+    font_size: 16
+    font_weight: "bold"
+    text_align: "left"
+    margin_top: 18
+    margin_bottom: 12
+    page_break_before: true
+    numbering: "chinese"  # 中文数字编号（一、二、三）
+
+  h3:  # 节标题（如：1.1 研究背景）
+    font_size: 14
+    font_weight: "bold"
+    text_align: "left"
+    margin_top: 14
+    margin_bottom: 6
+    numbering: "arabic"  # 阿拉伯数字编号（1.1, 1.2）
+
+  h4:  # 小节标题（如：1.1.1 研究意义）
+    font_size: 14
+    font_weight: "bold"
+    text_align: "left"
+    margin_top: 12
+    margin_bottom: 6
+    numbering: "arabic_sub"  # 子编号（1.1.1, 1.1.2）
+
+  h5:
+    font_size: 12
+    font_weight: "bold"
+    margin_top: 12
+    margin_bottom: 6
+
+  h6:
+    font_size: 12
+    font_weight: "normal"
+    margin_top: 12
+    margin_bottom: 6
+
+# 表格样式
+tables:
+  border_collapse: true  # 合并边框
+  border_width: 0.5  # 边框宽度（磅）
+  border_style: "solid"
+  border_color: "#000000"
+  cell_padding: 3  # 单元格内边距
+
+  # 表题样式
+  caption:
+    position: "above"  # 表题在表格上方
+    text_align: "center"
+    font_size: 10.5
+    font_weight: "bold"
+    numbering: true  # 自动编号（表1、表2）
+
+  # 三线表样式（学术标准）
+  style: "three_line"  # three_line | full_grid
+  header_row:
+    background_color: "#FFFFFF"  # 表头无背景色
+    font_weight: "bold"
+    border_bottom: "1.5pt solid"  # 表头底部粗线
+
+# 图片样式
+images:
+  max_width: "85%"  # 图片最大宽度（留出边距）
+  align: "center"  # 居中对齐
+
+  # 图题样式
+  caption:
+    position: "below"  # 图题在图片下方
+    text_align: "center"
+    font_size: 10.5
+    font_weight: "bold"
+    numbering: true  # 自动编号（图1、图2）
+
+  # 图片嵌入
+  embedding: "base64"  # base64 | relative | hybrid
+  max_dimension: 1920  # 最大尺寸（像素）
+  quality: 95  # JPEG质量（学术论文使用高质量）
+
+# 公式样式
+formulas:
+  format: "script"  # script（可编辑MathML） | text | image
+  numbering: true  # 公式编号
+  numbering_position: "right"  # 编号位置
+
+# 列表样式
+lists:
+  ordered:
+    style: "arabic"  # arabic (1, 2, 3) | roman (I, II, III) | letter (a, b, c)
+    indent: 2  # 缩进字符数
+
+  unordered:
+    marker: "disc"  # disc | circle | square
+    indent: 2
+
+  # 列表间距
+  spacing:
+    between_items: 0  # 列表项之间无额外间距
+    after_list: 12  # 列表后间距
+
+# 代码块样式
+code_blocks:
+  font_family: "Courier New"
+  font_size: 9  # 代码字号稍小
+  background_color: "#F5F5F5"  # 浅灰色背景
+  border: "1pt solid #CCCCCC"
+  padding: 8
+  line_height: 1.2
+  wrap: false  # 不自动换行
+
+# 引用样式
+blockquotes:
+  font_style: "italic"
+  left_indent: "2em"
+  right_indent: "0"
+  border_left: "4pt solid #CCCCCC"
+  padding_left: 12
+
+# 功能开关
+features:
+  enable_columns: false  # 学术论文通常不使用多栏
+  enable_tables: true
+  enable_lists: true
+  enable_code_blocks: true
+  enable_blockquotes: true
+  enable_horizontal_rules: true
+
+# 高级功能
+advanced:
+  # 交叉引用
+  cross_references:
+    enable: true
+    format: "见第{ref}节"  # 交叉引用格式
+
+  # 目录
+  table_of_contents:
+    enable: true  # 启用目录生成
+    max_level: 3  # 目录层级
+    title: "目录"
+    font_size: 14
+    font_weight: "bold"
+
+  # 参考文献样式
+  bibliography:
+    style: "APA"  # APA | MLA | Chicago | IEEE | GB/T 7714
+    hanging_indent: true  # 悬挂缩进
+    font_size: 10.5
+    line_height: 1.3
+
+# 输出选项
+output:
+  include_mathjax: true  # 包含MathJax（浏览器预览用）
+  pretty_print: true
+  encoding: "utf-8"
+
+# 元数据
+metadata:
+  # 学术论文默认元数据
+  title: ""
+  author: ""
+  affiliation: ""
+  date: ""
+  abstract: ""
+  keywords: []
+  classification: ""  # 学科分类

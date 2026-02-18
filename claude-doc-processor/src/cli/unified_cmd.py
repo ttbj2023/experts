@@ -38,6 +38,9 @@ def main():
   # 限制页数
   %(prog)s document.pdf --max-pages 10
 
+  # 从指定页开始处理
+  %(prog)s document.pdf --start-page 51 --max-pages 50
+
   # 批量转换
   %(prog)s docs/*.pdf --batch
   %(prog)s documents/* -o batch_output
@@ -85,6 +88,14 @@ def main():
         type=int,
         dest='max_pages',
         help='最大处理页数（仅PDF，默认: 处理所有页）'
+    )
+
+    parser.add_argument(
+        '--start-page',
+        type=int,
+        default=1,
+        dest='start_page',
+        help='起始页码（从1开始，默认: 1）'
     )
 
     parser.add_argument(
@@ -185,6 +196,7 @@ def main():
                     input_path,
                     file_output_dir,
                     max_pages=args.max_pages,
+                    start_page=args.start_page,
                     enable_content_refinement=args.enable_content_refinement
                 )
 
