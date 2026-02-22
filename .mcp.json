@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "tool-engine-local": {
+      "command": "/home/jsjrjft/project/tool_engine_local/.venv/bin/python",
+      "args": ["/home/jsjrjft/project/tool_engine_local/main.py"],
+      "cwd": "/home/jsjrjft/project/tool_engine_local",
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "GEMINI_API_KEY": "test1234",
+        "GEMINI_BASE_URL": "http://192.168.100.220:8999",
+        "TOOL_ENGINE_MCP_MODE": "true",
+        "PYTHONPATH": "/home/jsjrjft/project/tool_engine_local"
+      }
+    }
+  }
+}
