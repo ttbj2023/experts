@@ -14,6 +14,7 @@ from src.wechat.api_client import wechat_api_client
 from src.utils.config import config
 from src.utils.logger import get_logger
 from src.services.chart_data_finder import get_chart_data_finder
+from src.utils.watermark_remover import watermark_remover
 
 logger = get_logger(__name__)
 
@@ -169,8 +170,16 @@ class ArticlePublisher:
             cover_path = str(article_dir / "cover_1.png")
             generated_path = doubao_client.generate_cover_image(cover_prompt, cover_path)
             if generated_path:
-                result["covers"].append(generated_path)
-                logger.info(f"✅ 封面图生成成功")
+                # 去除水印
+                logger.info("去除封面图水印...")
+                clean_path = watermark_remover.remove_watermark(generated_path)
+                if clean_path:
+                    result["covers"].append(clean_path)
+                    logger.info(f"✅ 封面图生成并去水印成功")
+                else:
+                    # 如果去水印失败，使用原图
+                    result["covers"].append(generated_path)
+                    logger.info(f"✅ 封面图生成成功（未去水印）")
             else:
                 logger.error("❌ 封面图生成失败")
         else:
@@ -237,8 +246,16 @@ class ArticlePublisher:
                 illu_path = str(article_dir / f"illustration_{i}.png")
                 generated_path = doubao_client.generate_illustration(desc, illu_path)
                 if generated_path:
-                    result["illustrations"].append(generated_path)
-                    logger.info(f"✅ 插图{i}生成成功")
+                    # 去除水印
+                    logger.info(f"去除插图{i}水印...")
+                    clean_path = watermark_remover.remove_watermark(generated_path)
+                    if clean_path:
+                        result["illustrations"].append(clean_path)
+                        logger.info(f"✅ 插图{i}生成并去水印成功")
+                    else:
+                        # 如果去水印失败，使用原图
+                        result["illustrations"].append(generated_path)
+                        logger.info(f"✅ 插图{i}生成成功（未去水印）")
                 else:
                     logger.error(f"❌ 插图{i}生成失败")
 
@@ -318,19 +335,71 @@ class ArticlePublisher:
         logger.info("转换为微信HTML...")
 
         # 1. Markdown → HTML（新转换器）
-        logger.info("1/2 Markdown转HTML（包含摘要）...")
+        logger.info("1/3 Markdown转HTML（包含摘要）...")
         html_with_summary = self.parser.parse_content(
             content=refined_content,
             summary=summary
         )
         logger.info(f"✅ HTML生成成功，长度: {len(html_with_summary)}字符")
 
-        # 2. 嵌入图片（使用真实URL）
-        logger.info("2/2 嵌入图片...")
-        html_with_images = self._embed_images(html_with_summary, media_infos)
+        # 2. 嵌入封面图（在文章开头）
+        logger.info("2/3 嵌入封面图...")
+        html_with_cover = self._embed_cover_image(html_with_summary, media_infos)
+        logger.info("✅ 封面图嵌入完成")
+
+        # 3. 嵌入其他图片（使用真实URL）
+        logger.info("3/3 嵌入其他图片...")
+        html_with_images = self._embed_images(html_with_cover, media_infos)
         logger.info("✅ 图片嵌入完成")
 
         return html_with_images
+
+    def _embed_cover_image(self, html: str, media_infos: Dict[str, List[Dict]]) -> str:
+        """
+        在文章开头嵌入封面图
+
+        Args:
+            html: HTML内容
+            media_infos: 素材信息字典（包含media_id和url）
+                {
+                    "covers": [{"media_id": "xxx", "url": "https://..."}, ...],
+                    ...
+                }
+
+        Returns:
+            str: 嵌入封面图后的HTML
+        """
+        covers = media_infos.get("covers", [])
+
+        if not covers:
+            logger.info("没有封面图，跳过嵌入")
+            return html
+
+        # 获取第一张封面图
+        cover_url = covers[0]['url']
+
+        # 创建封面图HTML
+        cover_html = f'''<section style="text-align: center; margin: 0 0 24px 0;">
+  <img src="{cover_url}" style="max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 4px;" />
+</section>'''
+
+        # 在HTML开头插入封面图（在第一个section标签之后）
+        # 查找第一个section标签的位置
+        import re
+        section_pattern = r'<section[^>]*>'
+        match = re.search(section_pattern, html)
+
+        if match:
+            # 在第一个section标签之后插入封面图
+            insert_pos = match.end()
+            html_with_cover = html[:insert_pos] + cover_html + html[insert_pos:]
+            logger.info(f"✅ 封面图已嵌入文章开头")
+        else:
+            # 如果找不到section标签，直接在开头插入
+            html_with_cover = cover_html + html
+            logger.info(f"✅ 封面图已嵌入HTML开头")
+
+        return html_with_cover
 
     def _embed_images(self, html: str, media_infos: Dict[str, List[Dict]]) -> str:
         """

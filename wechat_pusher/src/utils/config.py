@@ -129,6 +129,16 @@ class ArticleConfig(BaseSettings):
     fans_only: bool = Field(default=False, alias="FANS_ONLY")
 
 
+class WatermarkRemovalConfig(BaseSettings):
+    """水印去除配置"""
+
+    enabled: bool = Field(default=True, alias="WATERMARK_REMOVAL_ENABLED")
+    watermark_remover_path: str = Field(
+        default="/home/workspace/WatermarkRemover-AI",
+        alias="WATERMARK_REMOVER_PATH"
+    )
+
+
 class Config:
     """全局配置管理器"""
 
@@ -151,6 +161,7 @@ class Config:
             self.image = ImageConfig()
             self.content = ContentConfig()
             self.article = ArticleConfig()
+            self.watermark_removal = WatermarkRemovalConfig()
 
             # 创建必要的目录
             self._create_directories()
