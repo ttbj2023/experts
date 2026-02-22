@@ -32,6 +32,24 @@ FONT_FAMILY_CODE = "'Courier New', Consolas, Monaco, monospace"
 
 # ==================== 字体配置结束 ====================
 
+def number_to_chinese(num: int) -> str:
+    """
+    将数字转换为中文数字
+
+    Args:
+        num: 数字
+
+    Returns:
+        str: 中文数字
+    """
+    chinese_numbers = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十',
+                      '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十']
+    if num < len(chinese_numbers):
+        return chinese_numbers[num]
+    # 对于更大的数字，简单返回阿拉伯数字
+    return str(num)
+
+
 def analyze_list_indentation(md_lines: list) -> dict:
     """
     分析Markdown列表的缩进结构
@@ -203,7 +221,7 @@ def convert_markdown_content_to_wechat(
                 "max-width: 100%;"
             )
             heading["data-heading"] = "true"
-            heading.string = f"{h2_count:02d} {section_title}"
+            heading.string = f"{number_to_chinese(h2_count)}、{section_title}"
 
         elif heading.name == "h3":
             h3_count += 1
@@ -226,13 +244,13 @@ def convert_markdown_content_to_wechat(
                 "max-width: 100%;"
             )
             heading["data-heading"] = "true"
-            heading.string = f"{h2_count}.{h3_count} {section_title}"
+            heading.string = f"{h3_count:02d} {section_title}"
 
     # 处理段落 - 添加样式（针对移动端优化）
     for p in soup.find_all("p"):
         if not p.get("style"):
             # 使用数字line-height，适应字体缩放
-            p["style"] = f"font-size: 15px; margin-bottom: 14px; margin-top: 14px; line-height: 1.6; color: rgb(51, 51, 51); letter-spacing: 0.5px; font-family: {FONT_FAMILY};"
+            p["style"] = f"font-size: 15px; margin-bottom: 16px; margin-top: 16px; line-height: 1.75; color: rgb(51, 51, 51); letter-spacing: 1px; font-family: {FONT_FAMILY};"
 
     # 处理无序列表：保留 ul/ol/li 结构并添加样式（借鉴 doocs/md 的设计）
     for ul in soup.find_all("ul"):
@@ -251,7 +269,8 @@ def convert_markdown_content_to_wechat(
                     "font-size: 15px; "
                     "line-height: 1.75; "
                     "margin: 8px 0; "
-                    "color: rgb(51, 51, 51);"
+                    "color: rgb(51, 51, 51); "
+                    "letter-spacing: 1px;"
                 )
 
     # 处理有序列表：保留 ul/ol/li 结构并添加样式（借鉴 doocs/md 的设计）
@@ -271,7 +290,8 @@ def convert_markdown_content_to_wechat(
                     "font-size: 15px; "
                     "line-height: 1.75; "
                     "margin: 8px 0; "
-                    "color: rgb(51, 51, 51);"
+                    "color: rgb(51, 51, 51); "
+                    "letter-spacing: 1px;"
                 )
     # 处理粗体文本（添加深蓝色）
     for bold in soup.find_all(["strong", "b"]):
@@ -390,7 +410,7 @@ def convert_markdown_content_to_wechat(
             section.decompose()
 
     # 构建完整的 HTML（简化版，不包含主标题）
-    content_html = str(soup)
+    content_html = str(soup).strip()
 
     # 摘要框（可选）
     summary_section = ""
@@ -408,23 +428,20 @@ def convert_markdown_content_to_wechat(
   </section>
 """
 
-    full_html = f"""
-<section style="padding: 0px 8px; font-family: {FONT_FAMILY};">
-{summary_section}
-  <!-- 正文内容 -->
-  <div style="font-size: 15px; margin-bottom: 16px; color: rgb(51, 51, 51); margin-top: 16px; letter-spacing: 1px; font-family: {FONT_FAMILY};">
-    {content_html}
-  </div>
-
-  <!-- 文章结尾 -->
-  <section style="margin-top: 48px;">
-    <hr style="height: 1px; background-color: #e5e7eb; border: none;" />
-    <p style="font-size: 14px; color: #666666; line-height: 1.6; text-align: center; margin: 24px 0;">
-      感谢阅读
-    </p>
-  </section>
-</section>
-    """
+    # 构建完整的 HTML，紧凑格式，无多余空行
+    full_html = (
+        f'<section style="padding: 0px 8px; font-family: {FONT_FAMILY};">\n'
+        '  <!-- 正文内容 -->\n'
+        f'  <div style="font-size: 15px; margin-bottom: 16px; color: rgb(51, 51, 51); margin-top: 16px; letter-spacing: 1px; font-family: {FONT_FAMILY};">\n'
+        f'    {content_html}\n'
+        '  </div><!-- 文章结尾 --><section style="margin-top: 32px;">\n'
+        '    <hr style="height: 1px; background-color: #e5e7eb; border: none;" />\n'
+        '    <p style="font-size: 14px; color: #666666; line-height: 1.6; text-align: center; margin: 24px 0;">\n'
+        '      感谢阅读\n'
+        '    </p>\n'
+        '  </section>\n'
+        '</section>'
+    )
 
     return full_html
 
