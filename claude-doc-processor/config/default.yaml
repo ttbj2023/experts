@@ -37,13 +37,19 @@ models:
         top_k: 10
         special_handling: true          # 启用特殊处理逻辑
 
-  # DeepSeek 配置
+  # DeepSeek 配置 - 文本模型（语义匹配、排版优化）
   deepseek:
     api_key: "${DEEPSEEK_API_KEY}"  # 从环境变量读取
-    model: "deepseek-chat"
-    timeout: 120
+    model: "deepseek-reasoner"      # 推理模型，128K上下文
+    timeout: 300                    # 5分钟（推理模型思考时间长）
     temperature: 0.1
-    max_tokens: 4000
+    max_tokens: 32000               # 最大输出 32K
+
+    # DeepSeek-Reasoner 特性
+    # - 128K 上下文长度
+    # - 思考过程（Chain of Thought）
+    # - 最大输出 32K/64K
+    # - 适合复杂推理和长文档理解
 
 # 文档类型检测配置（新增v2.0）
 detection:

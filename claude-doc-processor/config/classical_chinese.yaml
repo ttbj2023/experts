@@ -1,8 +1,40 @@
 # 古典中文文献处理配置
 # 专门针对古籍、家谱、经典等文献优化
 
-# 继承默认配置
-inherits: default.yaml
+# 模型配置
+models:
+  # Ollama - 视觉模型（OCR、图片分析）
+  ollama:
+    api_url: "http://localhost:11434"
+    vision_model: "qwen3-vl:8b"
+    timeout: 300  # 5分钟超时（古籍可能需要更长时间）
+
+    # 古典文献识别参数
+    parameters:
+      classical:
+        temperature: 0.0           # 零温度，确保繁体字准确性
+        num_ctx: 16384             # 大上下文
+        top_p: 0.85
+        top_k: 10
+      genealogy:
+        temperature: 0.0
+        num_ctx: 20480             # 更大上下文（处理复杂世系表）
+        top_p: 0.85
+        top_k: 10
+
+  # DeepSeek-Reasoner - 文本模型（语义匹配、排版优化）
+  deepseek:
+    api_key: "${DEEPSEEK_API_KEY}"
+    model: "deepseek-reasoner"      # 推理模型，128K上下文
+    timeout: 300                    # 5分钟（推理模型思考时间长）
+    temperature: 0.1
+    max_tokens: 32000               # 最大输出 32K
+
+    # DeepSeek-Reasoner 特性
+    # - 128K 上下文长度
+    # - 思考过程（Chain of Thought）
+    # - 最大输出 32K/64K
+    # - 适合复杂推理和长文档理解
 
 # 处理模式
 processing:
