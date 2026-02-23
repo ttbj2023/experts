@@ -48,6 +48,75 @@ class OllamaClient:
     # 视觉模型方法
     # ========================================
 
+    def ocr_page(self, image_path: str) -> str:
+        """
+        对图片进行 OCR 识别，返回 Markdown 格式的文本
+
+        Args:
+            image_path: 图片路径
+
+        Returns:
+            Markdown 格式的文本
+        """
+        # 读取图片
+        image_base64 = self._read_image_base64(image_path)
+        if not image_base64:
+            return f"无法读取图片: {image_path}"
+
+        # OCR 提示词
+        prompt = """你是一个专业的OCR识别系统。请将这个图片转换为Markdown格式。
+
+## 输出格式要求
+请使用以下格式输出：
+```markdown
+[你的Markdown内容]
+```
+
+## 转换规则
+
+### 文字内容
+- 标题：使用 # ## ### #### 表示层级
+- 段落：直接输出文字，空行分隔
+- 列表：使用 - 或 1.
+- 表格：使用 Markdown表格语法
+- 公式：行内用 $x^2$，独立用 $$\\frac{a}{b}$$
+
+### 图片处理
+遇到图片时使用：
+<!-- IMAGE_PLACEHOLDER type: 图片类型 description: 详细描述 -->
+
+### 页眉页脚处理 ⚠️ 重要
+- **不要识别页眉页脚**：忽略页面顶部和底部的重复信息
+- **只识别正文内容**：专注于页面中间的主要内容区域
+
+## 输出要求
+1. **只输出Markdown内容**，不要有解释或前言
+2. 保持原意，准确识别所有文字
+3. 输出必须是纯Markdown格式，不要使用markdown代码块包裹"""
+
+        try:
+            logger.info(f"正在OCR识别: {Path(image_path).name}")
+
+            # 调用 Ollama API
+            response = self._call_vision_api(prompt, image_base64)
+
+            if response:
+                # 清理响应
+                markdown_text = response.strip()
+
+                # 移除可能的 markdown 代码块包裹
+                markdown_text = self._remove_code_block_markers(markdown_text)
+
+                logger.info(f"  → 识别了 {len(markdown_text)} 个字符")
+                return markdown_text
+            else:
+                logger.warning(f"OCR响应为空")
+                return ""
+
+        except Exception as e:
+            logger.error(f"OCR识别异常: {image_path}, {str(e)}")
+            return f"OCR识别失败: {str(e)}"
+
     def analyze_image(self, image_path: str) -> Dict:
         """
         分析图片类型（使用 qwen3-vl:8b）

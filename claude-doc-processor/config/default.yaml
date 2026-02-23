@@ -5,9 +5,39 @@ models:
   # Ollama 配置 (推荐)
   ollama:
     api_url: "http://localhost:11434"  # Ollama API 地址
-    vision_model: "qwen3-vl:8b"         # 视觉模型
+    vision_model: "qwen3-vl:8b"         # 视觉模型（可替换为自定义 qwen3-vl-8b-doc）
     text_model: "qwen3-vl:8b"           # 文本模型
     timeout: 180                        # 请求超时时间（秒）
+
+    # 场景化参数配置
+    parameters:
+      # OCR识别场景（高精度、低创造性）
+      ocr:
+        temperature: 0.05               # 低温度保证准确性
+        num_ctx: 8192                   # 单页8K足够
+        top_p: 0.9
+        top_k: 20
+
+      # 图片描述场景（中等创造性）
+      image_description:
+        temperature: 0.2                # 平衡准确性和描述性
+        num_ctx: 4096                   # 简短描述不需要太多上下文
+        top_p: 0.95
+        top_k: 40
+
+      # 图片分析场景（类型判断）
+      image_analysis:
+        temperature: 0.0                # 最严格的确定性输出
+        num_ctx: 4096
+        top_p: 0.85
+        top_k: 10
+
+      # 语义匹配场景（全局上下文）
+      semantic_matching:
+        temperature: 0.1                # 低温度
+        num_ctx: 16384                  # 需要理解整个文档
+        top_p: 0.9
+        top_k: 30
 
   # GLM-4.6V-Flash 配置 (已废弃，仅用于向后兼容)
   # 推荐使用 Ollama + Qwen3 VL 作为视觉模型
