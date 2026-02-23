@@ -680,11 +680,15 @@ class OllamaClient:
 
             result = response.json()
 
+            # 调试：打印响应内容
+            logger.debug(f"API响应: {result}")
+
             # 提取响应内容
             if 'message' in result and 'content' in result['message']:
                 return result['message']['content']
             else:
                 logger.warning(f"意外的API响应格式: {result.keys()}")
+                logger.debug(f"完整响应: {result}")
                 return None
 
         except requests.exceptions.Timeout:

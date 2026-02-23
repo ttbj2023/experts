@@ -26,11 +26,13 @@ class DeepSeekClient:
         Args:
             config: 配置字典，从config/default.yaml加载
         """
-        self.api_key = config['models']['deepseek'].get('api_key', '')
-        self.model = config['models']['deepseek']['model']
-        self.timeout = config['models']['deepseek']['timeout']
-        self.temperature = config['models']['deepseek']['temperature']
-        self.max_tokens = config['models']['deepseek']['max_tokens']
+        deepseek_config = config.get('models', {}).get('deepseek', {})
+
+        self.api_key = deepseek_config.get('api_key', '')
+        self.model = deepseek_config.get('model', 'deepseek-reasoner')
+        self.timeout = deepseek_config.get('timeout', 300)
+        self.temperature = deepseek_config.get('temperature', 0.1)
+        self.max_tokens = deepseek_config.get('max_tokens', 32000)
 
         # 从环境变量读取API key（优先级更高）
         import os
