@@ -117,6 +117,125 @@ class OllamaClient:
             logger.error(f"OCR识别异常: {image_path}, {str(e)}")
             return f"OCR识别失败: {str(e)}"
 
+    def ocr_classical_page(self, image_path: str, doc_type: str = "classical") -> str:
+        """
+        对古典文献页面进行 OCR 识别
+
+        Args:
+            image_path: 图片路径
+            doc_type: 文献类型 (classical/genealogy/classic)
+
+        Returns:
+            Markdown 格式的文本
+        """
+        # 读取图片
+        image_base64 = self._read_image_base64(image_path)
+        if not image_base64:
+            return f"无法读取图片: {image_path}"
+
+        # 根据文献类型选择提示词
+        if doc_type == "genealogy":
+            prompt = """你是一个专业的家谱文献识别专家。请识别这张家谱图片。
+
+## 家谱特征
+- 繁体竖排（从右到左，从上到下）
+- 世系图表（世代、人名、关系）
+- 生卒婚葬信息
+- 家族术语（承祧、嗣、配、氏、卒、葬等）
+
+## 识别要求
+
+### 1. 保持原始格式
+- 保持竖排格式的层次结构
+- 保留缩进和空行
+- 不添加现代标点
+- 不改写原文
+
+### 2. 文字输出
+直接输出识别的文字内容，每行独立：
+```
+[第一行文字]
+
+[第二行文字]
+
+[第三行文字]
+```
+
+### 3. 特殊内容标记
+- 篇章标题：使用 `# 标题`
+- 批注：使用 `【批注内容】`
+- 印章：使用 `[印章]`
+- 无传信息：使用 `【无传】`
+
+### 4. 质量要求
+- 准确识别繁体字
+- 保持文字完整性
+- 不遗漏任何内容
+- 不臆造缺失文字
+
+请直接输出识别结果，不要有解释或前言。"""
+        else:  # classical or classic
+            prompt = """你是一个专业的古典文献识别专家。请将这张古籍图片转换为文字。
+
+## 文字特征
+- 繁体字
+- 竖排格式（从右到左，从上到下）
+- 古标点符号（、。；：）
+- 可能包含圈点、批注
+
+## 转换要求
+
+### 1. 保留原文格式
+- 保持竖排格式的层次结构
+- 保留缩进和空行
+- 不添加现代标点
+- 不改写原文
+
+### 2. 特殊元素标记
+篇章标题使用：`# 标题`
+章节标题使用：`## 标题`
+批注使用：`【批注内容】`
+印章使用：`[印章]`
+
+### 3. 输出格式
+直接输出文字内容，每行独立：
+```
+[第一行文字]
+
+[第二行文字]
+```
+
+### 4. 质量要求
+- 准确识别繁体字
+- 保持文字完整性
+- 不遗漏任何内容
+- 不臆造缺失文字
+
+请直接输出转换结果，不要有解释或前言。"""
+
+        try:
+            logger.info(f"正在识别古典文献: {Path(image_path).name} ({doc_type})")
+
+            # 调用 Ollama API（使用更大上下文）
+            response = self._call_vision_api(prompt, image_base64)
+
+            if response:
+                # 清理响应
+                text = response.strip()
+
+                # 移除可能的 markdown 代码块包裹
+                text = self._remove_code_block_markers(text)
+
+                logger.info(f"  → 识别了 {len(text)} 个字符")
+                return text
+            else:
+                logger.warning(f"OCR响应为空")
+                return ""
+
+        except Exception as e:
+            logger.error(f"古典文献识别异常: {image_path}, {str(e)}")
+            return f"识别失败: {str(e)}"
+
     def analyze_image(self, image_path: str) -> Dict:
         """
         分析图片类型（使用 qwen3-vl:8b）

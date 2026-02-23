@@ -1,0 +1,246 @@
+# 古典中文文献处理配置
+# 专门针对古籍、家谱、经典等文献优化
+
+# 继承默认配置
+inherits: default.yaml
+
+# 处理模式
+processing:
+  mode: "classical"  # classical | genealogy
+
+  # 古典文献特定配置
+  classical:
+    # 文字特征
+    text_features:
+      script: "traditional"           # 繁体字
+      orientation: "vertical"         # 竖排
+      punctuation: "classical"        # 古标点（、。；：）
+      numbering: "chinese"            # 中文数字（一二三、一二〇）
+
+    # 版式特征
+    layout:
+      preserve_vertical: true         # 保留竖排格式
+      preserve_indentation: true      # 保留缩进
+      line_spacing: "loose"           # 宽松行距
+      column_aware: true              # 识别分栏
+
+    # OCR 策略
+    ocr_strategy:
+      # 不添加现代标点（保留原文）
+      preserve_original_punctuation: true
+
+      # 识别段落边界
+      detect_paragraphs: true
+      paragraph_indicators:
+        - "indentation"               # 缩进
+        - "blank_line"                # 空行
+        - "chapter_heading"           # 篇章标题
+
+      # 识别特殊元素
+      special_elements:
+        chapter_heading:
+          patterns: ["第.*?章", "卷.*?", ".*?篇", ".*?说"]
+          format: "heading"
+        seal_stamp:
+          patterns: ["印", "章"]
+          format: "annotation"
+        marginal_notes:
+          patterns: ["注", "疏", "正义"]
+          format: "blockquote"
+        commentary:
+          patterns: ["【.*?】", "〔.*?〕"]
+          format: "comment"
+
+  # 家谱特定配置
+  genealogy:
+    # 继承古典文献配置
+    inherits: "classical"
+
+    # 家谱特定元素
+    specific_elements:
+      # 世系表
+      lineage_table:
+        detect: true
+        format: "table"
+        columns: ["世代", "名讳", "字号", "配偶", "子嗣", "卒葬"]
+
+      # 人名条目
+      person_entry:
+        patterns:
+          name: "^[\\u4e00-\\u9fa5]{2,3}$"  # 2-3个汉字
+          with_title: "^(.*?)(公|君|夫人|氏)$"
+          with_dates: ".*?(生|卒|葬).*?"
+
+      # 家族关系
+      relationships:
+        parent: ["父", "母", "考", "妣"]
+        child: ["子", "女", "嗣", "继"]
+        spouse: ["配", "娶", "夫人", "氏"]
+        sibling: ["兄", "弟", "姐", "妹"]
+
+      # 家谱专用术语
+      terminology:
+        - "承祧"     # 过继
+        - "嗣"       # 继承
+        - "配"       # 娶妻
+        - "氏"       # 妻子称谓
+        - "生子"     # 生儿子
+        - "女"       # 女儿
+        - "卒"       # 去世
+        - "葬"       # 安葬
+        - "无传"     # 无后代
+        - "入祀"     # 入祠堂
+
+    # 输出格式
+    output_format:
+      # 保留原始扫描图片（重要！）
+      embed_original_images: true
+
+      # OCR 文字作为补充
+      oertext_as:
+        - "alt_text"           # 图片 alt 文本
+        - "transcription"      # 逐字转录
+        - "annotation"         # 批注
+
+      # 元数据提取
+      extract_metadata:
+        - "generation"         # 世代
+        - "names"              # 人名
+        - "dates"              # 日期
+        - "locations"          # 地点
+        - "relationships"      # 关系
+
+# Prompt 模板
+prompts:
+  # 古典文献 OCR Prompt
+  classical_ocr: |
+    你是一个专业的古典文献识别专家。请将这张古籍图片转换为文字。
+
+    ## 文字特征
+    - 繁体字
+    - 竖排格式（从右到左，从上到下）
+    - 古标点符号（、。；：）
+    - 可能包含圈点、批注
+
+    ## 转换要求
+
+    ### 1. 保留原文格式
+    - 保持竖排格式的层次结构
+    - 保留缩进和空行
+    - 不添加现代标点
+    - 不改写原文
+
+    ### 2. 特殊元素标记
+    篇章标题使用：`# 标题`
+    章节标题使用：`## 标题`
+    批注使用：`【批注内容】`
+    印章使用：`[印章]`
+
+    ### 3. 输出格式
+    ```markdown
+    [保持原有格式，每行独立]
+
+    [空行表示段落分隔]
+
+    [特殊内容使用标记]
+    ```
+
+    ### 4. 质量要求
+    - 准确识别繁体字
+    - 保持文字完整性
+    - 不遗漏任何内容
+    - 不臆造缺失文字
+
+    请直接输出转换结果，不要有解释。
+
+  # 家谱 OCR Prompt
+  genealogy_ocr: |
+    你是一个专业的家谱文献识别专家。请识别这张家谱图片。
+
+    ## 家谱特征
+    - 繁体竖排
+    - 世系图表（世代、人名、关系）
+    - 生卒婚葬信息
+    - 家族术语（承祧、嗣、配等）
+
+    ## 识别要求
+
+    ### 1. 结构识别
+    - 识别世系层级
+    - 提取人名信息
+    - 标注家族关系
+    - 记录生卒葬地
+
+    ### 2. 信息提取
+    对每个人名条目，提取：
+    - 世代：第几世/第几代
+    - 名讳：姓名/字/号
+    - 关系：父母/配偶/子女
+    - 日期：生年/卒年/葬期
+    - 地点：葬地/迁徙地
+
+    ### 3. 输出格式
+
+    世系信息使用表格：
+    ```markdown
+    | 世代 | 名讳 | 字号 | 配偶 | 子嗣 | 卒葬 |
+    |------|------|------|------|------|------|
+    | 第X世 | XXX | XXX | X氏 | XX子 | XXX |
+    ```
+
+    叙述文字保持原格式：
+    ```markdown
+    [保持竖排格式的文字内容]
+    ```
+
+    ### 4. 特殊处理
+    - "无传"：标记为 `【无传】`
+    - "嗣"：标记继承人关系
+    - "配X氏"：记录配偶信息
+
+    请直接输出识别结果，不要有解释。
+
+# 模型参数调优
+models:
+  ollama:
+    parameters:
+      # 古典文献识别
+      classical_ocr:
+        temperature: 0.0           # 零温度，确保准确性
+        num_ctx: 16384             # 大上下文
+        top_p: 0.85
+        top_k: 10
+        repeat_penalty: 1.1        # 避免重复
+        num_batch: 256             # 批处理
+
+      # 家谱识别
+      genealogy_ocr:
+        temperature: 0.0
+        num_ctx: 20480             # 更大上下文（处理复杂世系表）
+        top_p: 0.85
+        top_k: 10
+        repeat_penalty: 1.15       # 更强的重复惩罚
+
+# 输出配置
+output:
+  classical:
+    # 保留原始图片
+    preserve_original_images: true
+
+    # 图片嵌入策略
+    image_embedding:
+      method: "markdown"           # 使用 Markdown 图片语法
+      placement: "after_text"      # 文字在前，图片在后
+      size: "large"                # 大图
+      link_to_original: true       # 链接到原始图片
+
+    # 元数据
+    metadata:
+      include: true
+      fields:
+        - "source_type"            # 文献类型
+        - "script"                 # 字体（繁体/简体）
+        - "orientation"            # 排版方向
+        - "estimated_dynasty"      # 推测朝代
+        - "extracted_names"        # 提取的人名
+        - "extracted_places"       # 提取的地名
