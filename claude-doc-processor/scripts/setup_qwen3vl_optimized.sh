@@ -40,11 +40,12 @@ cat > "$MODELFILE_PATH" << 'EOF'
 
 FROM qwen3-vl:8b
 
-# 16K 上下文窗口（平衡方案）
-# - 支持 6-8 万汉字输入
-# - 预留空间给思考过程
-# - 4070TiS 稳定运行
-PARAMETER num_ctx 16384
+# 12K 上下文窗口（标准配置）⭐ 推荐
+# Token 计算：视觉Token = (宽×高) / (32×32) + 2
+# 1080p 图片：~2100 视觉Token
+# 完整请求：视觉(2.1K) + 提示(0.5K) + 思考(4K) + 输出(2K) ≈ 8.5K
+# 预留余量：12K - 8.5K ≈ 3.5K (40% 安全余量)
+PARAMETER num_ctx 12284
 
 # 温度参数（场景化）
 # 默认使用 0.1，可根据场景调整
@@ -127,8 +128,13 @@ echo "部署完成！"
 echo "======================================"
 echo ""
 echo "模型: qwen3-vl-8b-doc"
-echo "上下文: 16K tokens"
+echo "上下文: 12K tokens (标准配置) ⭐"
 echo "温度: 0.1"
+echo ""
+echo "Token 计算:"
+echo "  1080p图片 ≈ 2100 视觉Token"
+echo "  完整请求 ≈ 8.5K (视觉2K + 提示0.5K + 思考4K + 输出2K)"
+echo "  安全余量 ≈ 3.5K (40%)"
 echo ""
 echo "使用方法:"
 echo "  1. 确认 Ollama 正在运行"
@@ -136,7 +142,14 @@ echo "  2. 启动模型: ollama run qwen3-vl-8b-doc"
 echo "  3. 测试: ./convert.py document.pdf -o output/"
 echo ""
 echo "参数调整参考:"
-echo "  - OCR场景: temperature 0.05, num_ctx 8192"
-echo "  - 描述场景: temperature 0.2, num_ctx 4096"
-echo "  - 匹配场景: temperature 0.1, num_ctx 16384"
+echo "  - 720p图片: num_ctx 8192"
+echo "  - 1080p图片: num_ctx 12288 (推荐) ⭐"
+echo "  - 2K图片: num_ctx 16384"
+echo "  - 4K图片: num_ctx 24576"
+echo ""
+echo "场景化温度:"
+echo "  - OCR(高精度): temperature 0.05"
+echo "  - 描述(平衡): temperature 0.2"
+echo "  - 分类(严格): temperature 0.0"
+echo "  - 匹配(全局): temperature 0.1"
 echo ""

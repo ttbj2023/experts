@@ -10,34 +10,64 @@ models:
     timeout: 180                        # 请求超时时间（秒）
 
     # 场景化参数配置
+    # Token 计算：视觉Token = (宽×高) / (32×32) + 2
+    # 1080p图片 ≈ 2100 视觉Token + 思考(~4K) + 输出(~2K) ≈ 8K-10K 总计
     parameters:
       # OCR识别场景（高精度、低创造性）
       ocr:
         temperature: 0.05               # 低温度保证准确性
-        num_ctx: 8192                   # 单页8K足够
+        num_ctx: 12288                  # 12K: 1080p图片 + 思考 + 输出
+        # num_ctx: 8192                # 8K: 720p或简单页面
+        # num_ctx: 16384               # 16K: 复杂页面或长输出
         top_p: 0.9
         top_k: 20
+        note: "1080p图片≈2.1K视觉token + 思考4K + 输出2K ≈ 8K-10K"
 
       # 图片描述场景（中等创造性）
       image_description:
         temperature: 0.2                # 平衡准确性和描述性
-        num_ctx: 4096                   # 简短描述不需要太多上下文
+        num_ctx: 6144                   # 6K: 图片 + 简短描述
         top_p: 0.95
         top_k: 40
+        note: "仅需图片token + 简短输出，6K足够"
 
       # 图片分析场景（类型判断）
       image_analysis:
         temperature: 0.0                # 最严格的确定性输出
-        num_ctx: 4096
+        num_ctx: 6144                   # 6K: 图片 + JSON输出
         top_p: 0.85
         top_k: 10
+        note: "分类任务，输出JSON格式"
 
       # 语义匹配场景（全局上下文）
       semantic_matching:
         temperature: 0.1                # 低温度
-        num_ctx: 16384                  # 需要理解整个文档
+        num_ctx: 24576                  # 24K: 多页文档 + 全局理解
+        # num_ctx: 32768               # 32K: 超长文档
         top_p: 0.9
         top_k: 30
+        note: "需要理解整个文档上下文"
+
+    # Token 计算参考
+    token_calculation:
+      formula: "视觉Token = (宽×高) / (32×32) + 2"
+      examples:
+        - resolution: "720p (1280×720)"
+          visual_tokens: ~900
+          recommended_ctx: 8192
+        - resolution: "1080p (1920×1080)"
+          visual_tokens: ~2100
+          recommended_ctx: 12288  # 标准配置 ⭐
+        - resolution: "2K (2560×1440)"
+          visual_tokens: ~3600
+          recommended_ctx: 16384
+        - resolution: "4K (3840×2160)"
+          visual_tokens: ~8100
+          recommended_ctx: 24576
+      breakdown:
+        ocr_request: "视觉(~2K) + 提示词(~500) + 思考(~4K) + 输出(~2K) = ~8.5K"
+        safety_margin: "预留 20-30% 余量"
+        memory_16gb: "推荐 12K-16K 上下文，稳定运行"
 
   # GLM-4.6V-Flash 配置 (已废弃，仅用于向后兼容)
   # 推荐使用 Ollama + Qwen3 VL 作为视觉模型
