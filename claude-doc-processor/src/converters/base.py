@@ -99,12 +99,11 @@ class BaseConverter:
         """获取默认配置"""
         return {
             'models': {
-                'glm': {
-                    'api_url': 'http://localhost:9999',
-                    'model': 'zai-org/glm-4.6v-flash',
-                    'max_tokens': 8192,
-                    'timeout': 60,
-                    'temperature': 0.3
+                'ollama': {
+                    'api_url': 'http://localhost:11434',
+                    'vision_model': 'qwen3-vl:8b',
+                    'text_model': 'qwen3-vl:8b',
+                    'timeout': 180
                 },
                 'deepseek': {
                     'api_key': '',

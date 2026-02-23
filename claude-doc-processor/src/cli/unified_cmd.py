@@ -49,9 +49,9 @@ def main():
   Stage 0: DOCX→PDF预处理（可选）
   Stage 1: PDF类型检测（文档型 vs 扫描型）
   Stage 2: 图片提取（分支选择）
-  Stage 3: OCR识别（GLM逐页）
+  Stage 3: OCR识别（Ollama + Qwen3 VL 逐页）
   Stage 3.5: 内容整理（DeepSeek逐页，可选）⭐
-  Stage 4: 图片描述（GLM）
+  Stage 4: 图片描述（Ollama + Qwen3 VL）
   Stage 5: 语义匹配（DeepSeek全局）
   Stage 6: 智能替换（去重+清理）
 
@@ -126,9 +126,9 @@ def main():
 
     # 环境变量覆盖（可选）
     parser.add_argument(
-        '--glm-api-key',
-        dest='glm_api_key',
-        help='GLM API密钥（覆盖配置文件）'
+        '--ollama-url',
+        dest='ollama_url',
+        help='Ollama API地址（覆盖配置文件）'
     )
 
     parser.add_argument(
@@ -170,8 +170,8 @@ def main():
         converter = UnifiedConverter(config_path=args.config_path)
 
         # 应用环境变量覆盖
-        if args.glm_api_key:
-            converter.config['models']['glm']['api_key'] = args.glm_api_key
+        if args.ollama_url:
+            converter.config['models']['ollama']['api_url'] = args.ollama_url
         if args.deepseek_api_key:
             converter.config['models']['deepseek']['api_key'] = args.deepseek_api_key
 

@@ -12,9 +12,9 @@
   - Stage 0: DOCX→PDF预处理（可选）
   - Stage 1: 文档解析（PDF类型检测）
   - Stage 2: 图片提取（分支选择）
-  - Stage 3: OCR识别（GLM逐页）
+  - Stage 3: OCR识别（Ollama + Qwen3 VL 逐页）
   - Stage 3.5: 内容整理（DeepSeek逐页，可选）
-  - Stage 4: 图片描述（GLM）
+  - Stage 4: 图片描述（Ollama + Qwen3 VL）
   - Stage 5: 语义匹配（DeepSeek全局）
   - Stage 6: 智能替换（去重+清理）
 """
@@ -27,7 +27,7 @@ from typing import Dict, List, Tuple, Optional
 import fitz  # PyMuPDF
 
 from .base import BaseConverter
-from ..core.glm_client import GLMClient
+from ..core.ollama_client import OllamaClient
 from ..core.deepseek_client import DeepSeekClient
 from ..core.image_processor import ImageProcessor
 from ..core.ocr_engine import OCREngine
@@ -52,7 +52,7 @@ class UnifiedConverter(BaseConverter):
         super().__init__(config_path)
 
         # 初始化核心组件
-        self.glm_client = GLMClient(self.config)
+        self.vision_client = OllamaClient(self.config)  # 使用 Ollama 视觉模型
         self.deepseek_client = DeepSeekClient(self.config)
         self.image_processor = ImageProcessor(self.config)
         self.ocr_engine = OCREngine(self.config)
@@ -139,7 +139,7 @@ class UnifiedConverter(BaseConverter):
             self.stats['total_images'] = len(all_images)
             self.stats['stages_completed'].append(f'Stage 2: 图片提取 ({len(all_images)}张)')
 
-            # ========== Stage 3: OCR识别（GLM逐页） ==========
+            # ========== Stage 3: OCR识别（Ollama + Qwen3 VL逐页） ==========
             markdown_pages, all_placeholders = self._stage3_ocr_pages(
                 pdf_path, start_page_0based, max_pages, enable_content_refinement
             )
@@ -153,7 +153,7 @@ class UnifiedConverter(BaseConverter):
             with open(raw_md_path, 'w', encoding='utf-8') as f:
                 f.write(markdown)
 
-            # ========== Stage 4: 图片描述（GLM） ==========
+            # ========== Stage 4: 图片描述（Ollama + Qwen3 VL） ==========
             if all_images:
                 image_descriptions = self._stage4_describe_images(all_images)
                 self.stats['stages_completed'].append('Stage 4: 图片描述')
@@ -380,7 +380,7 @@ class UnifiedConverter(BaseConverter):
         return images
 
     # ============================================================
-    # Stage 3: OCR识别（GLM逐页）
+    # Stage 3: OCR识别（Ollama + Qwen3 VL逐页）
     # ============================================================
 
     def _stage3_ocr_pages(
@@ -391,7 +391,7 @@ class UnifiedConverter(BaseConverter):
         enable_content_refinement: bool = False
     ) -> Tuple[List[str], List[Dict]]:
         """
-        Stage 3: OCR识别（GLM逐页）
+        Stage 3: OCR识别（Ollama + Qwen3 VL逐页）
 
         逐页OCR识别，可选Stage 3.5内容整理
 
@@ -405,7 +405,7 @@ class UnifiedConverter(BaseConverter):
             (markdown页面列表, 所有占位符列表)
         """
         self.logger.info("\n" + "=" * 60)
-        self.logger.info("Stage 3: OCR识别（GLM逐页）")
+        self.logger.info("Stage 3: OCR识别（Ollama + Qwen3 VL逐页）")
         if enable_content_refinement:
             self.logger.info("  + Stage 3.5: 逐页内容整理（启用）")
         self.logger.info("=" * 60)
@@ -445,10 +445,10 @@ class UnifiedConverter(BaseConverter):
                 tmp_path = tmp_file.name
                 pix.save(tmp_path)
 
-            # Stage 3: GLM OCR识别
-            self.logger.info(f"  Stage 3: GLM OCR识别...")
+            # Stage 3: OCR识别（使用 Ollama + Qwen3 VL）
+            self.logger.info(f"  Stage 3: OCR识别...")
             try:
-                page_markdown = self.glm_client.ocr_page(tmp_path)
+                page_markdown = self.vision_client.ocr_page(tmp_path)
             finally:
                 # 清理临时文件
                 try:
@@ -495,17 +495,17 @@ class UnifiedConverter(BaseConverter):
         return formatted
 
     # ============================================================
-    # Stage 4: 图片描述（GLM）
+    # Stage 4: 图片描述（Ollama + Qwen3 VL）
     # ============================================================
 
     def _stage4_describe_images(self, images: List[Dict]) -> List[Dict]:
         """
-        Stage 4: 图片描述（GLM）
+        Stage 4: 图片描述（Ollama + Qwen3 VL）
 
         为所有图片生成详细描述
         """
         self.logger.info("\n" + "=" * 60)
-        self.logger.info("Stage 4: 图片描述（GLM）")
+        self.logger.info("Stage 4: 图片描述（Ollama + Qwen3 VL）")
         self.logger.info("=" * 60)
 
         image_descriptions = []
@@ -516,8 +516,8 @@ class UnifiedConverter(BaseConverter):
 
             self.logger.info(f"  [{idx}/{len(images)}] 描述图片: {filename}")
 
-            # GLM描述（直接传递文件路径）
-            description = self.glm_client.describe_image(image_path)
+            # Ollama + Qwen3 VL描述（直接传递文件路径）
+            description = self.vision_client.describe_image(image_path)
 
             image_descriptions.append({
                 'filename': filename,

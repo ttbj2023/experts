@@ -9,14 +9,15 @@ models:
     text_model: "qwen3-vl:8b"           # 文本模型
     timeout: 180                        # 请求超时时间（秒）
 
-  # GLM-4.6V-Flash 配置 (备用)
+  # GLM-4.6V-Flash 配置 (已废弃，仅用于向后兼容)
+  # 推荐使用 Ollama + Qwen3 VL 作为视觉模型
   glm:
     api_url: "http://192.168.100.110:9999"
     model: "zai-org/glm-4.6v-flash"
-    max_tokens: 32768          # 输出token数（常用32k，最大128k）
-    timeout: 180               # 增加到180秒（针对扫描版高密度PDF）
-    temperature: 0.05          # 优化参数：100%成功率（测试日期：2026-02-18）
-    enabled: false             # 是否启用 GLM（false 则使用 Ollama）
+    max_tokens: 32768
+    timeout: 180
+    temperature: 0.05
+    enabled: false  # 已废弃，请使用 Ollama
 
   # DeepSeek 配置
   deepseek:

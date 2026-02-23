@@ -3,7 +3,7 @@ OCR 引擎
 
 统一的OCR相关工具，支持：
 1. 从Markdown中提取占位符
-2. 清理GLM返回的think标签
+2. 清理AI模型返回的特殊标签
 3. 提取Markdown代码块内容
 """
 
@@ -83,7 +83,7 @@ class OCREngine:
 
     def clean_think_tags(self, content: str) -> str:
         """
-        清理GLM-4.6V-Flash返回的think标签
+        清理AI模型返回的think标签
 
         Args:
             content: 原始内容

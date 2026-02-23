@@ -3,7 +3,7 @@
 """
 图片智能嵌入工具
 
-使用GLM-4.6V-Flash分析Markdown内容和图片，将图片插入到正确的位置
+使用 Ollama + Qwen3 VL 分析Markdown内容和图片，将图片插入到正确的位置
 """
 
 import os
@@ -18,11 +18,11 @@ logger = logging.getLogger(__name__)
 
 
 class ImageEmbedder:
-    """图片智能嵌入器 - 使用GLM-4.6V-Flash"""
+    """图片智能嵌入器 - 使用 Ollama + Qwen3 VL"""
 
-    def __init__(self, api_url: str = "http://192.168.100.110:9999/api/v1/chat"):
+    def __init__(self, api_url: str = "http://localhost:11434"):
         self.api_url = api_url
-        self.model = "glm-4.6v-flash"
+        self.model = "qwen3-vl:8b"
 
     def embed_images(self, md_path: str, images_dir: str, output_path: str):
         """
@@ -155,7 +155,7 @@ class ImageEmbedder:
             }
 
             try:
-                logger.info(f"正在调用GLM-4.6V-Flash API (批次 {batch_idx + 1}/{total_batches})...")
+                logger.info(f"正在调用 Ollama + Qwen3 VL API (批次 {batch_idx + 1}/{total_batches})...")
                 response = requests.post(
                     self.api_url,
                     json=request_data,
