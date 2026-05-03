@@ -141,7 +141,7 @@ class DoubaoClient:
         height = config.image.illustration_height
 
         # 添加约束：纯视觉符号，不包含任何文字
-        full_prompt = f"{prompt}, visual symbols only, no text, no words, no letters, no numbers, no labels, no titles, clean illustration, minimal design"
+        full_prompt = f"{prompt}, visual symbols only, no text, no words, no letters, no numbers, no labels, no titles"
 
         return self.generate_image(full_prompt, save_path, width, height)
 

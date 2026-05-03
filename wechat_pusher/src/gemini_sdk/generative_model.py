@@ -24,7 +24,7 @@ class GenerativeModel:
         api_key: str | None = None,
         base_url: str = "http://192.168.100.220:8999",
         generation_config: GenerationConfig | None = None,
-        timeout: float = 30.0,
+        timeout: float = 180.0,
     ):
         self.model_name = model_name
         self.config = GeminiConfig(api_key=api_key, base_url=base_url)

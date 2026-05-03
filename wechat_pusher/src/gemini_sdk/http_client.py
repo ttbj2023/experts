@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class HttpClient:
     """HTTP客户端，专门封装GARP Core API"""
 
-    def __init__(self, config: GeminiConfig, timeout: float = 30.0):
+    def __init__(self, config: GeminiConfig, timeout: float = 180.0):
         self.config = config
         self.timeout = timeout
         self.last_request_time: float = 0

@@ -62,7 +62,7 @@ def main():
    - API: https://ark.cn-beijing.volces.com/api/v3/images/generations
 
 📝 文本生成 (DeepSeek):
-   - 模型: deepseek-chat
+   - 模型: deepseek-v4-flash
    - API: https://api.deepseek.com/chat/completions
 
 🔧 代码示例:

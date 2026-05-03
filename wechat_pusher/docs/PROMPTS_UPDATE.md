@@ -243,7 +243,7 @@ AI以更高能效争夺电力与芯片资源，挤压比特币算力基础，致
 # DeepSeek AI Configuration
 DEEPSEEK_API_KEY=sk-62f31b03e22048799beefff7cae0dfc3
 DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_MODEL=deepseek-reasoner
+DEEPSEEK_MODEL=deepseek-v4-pro
 DEEPSEEK_MAX_TOKENS=32768  # 改为32k
 DEEPSEEK_TEMPERATURE=0.7
 ```

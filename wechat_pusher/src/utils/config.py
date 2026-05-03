@@ -19,7 +19,7 @@ class DeepSeekConfig(BaseSettings):
 
     api_key: str = Field(default="", alias="DEEPSEEK_API_KEY")
     base_url: str = Field(default="https://api.deepseek.com", alias="DEEPSEEK_BASE_URL")
-    model: str = Field(default="deepseek-chat", alias="DEEPSEEK_MODEL")
+    model: str = Field(default="deepseek-v4-flash", alias="DEEPSEEK_MODEL")
     max_tokens: int = Field(default=4000, alias="DEEPSEEK_MAX_TOKENS")
     temperature: float = Field(default=0.7, alias="DEEPSEEK_TEMPERATURE")
 
@@ -78,16 +78,6 @@ class AppConfig(BaseSettings):
             raise ValueError(f"日志级别必须是以下之一: {', '.join(valid_levels)}")
         return v.upper()
 
-
-class ChartConfig(BaseSettings):
-    """图表配置"""
-
-    style: str = Field(default="default", alias="CHART_STYLE")
-    dpi: int = Field(default=150, alias="CHART_DPI")
-    figure_width: float = Field(default=10.0, alias="CHART_FIGURE_WIDTH")
-    figure_height: float = Field(default=6.0, alias="CHART_FIGURE_HEIGHT")
-
-
 class APIConfig(BaseSettings):
     """API调用配置"""
 
@@ -116,7 +106,6 @@ class ContentConfig(BaseSettings):
 
     summary_length: int = Field(default=200, alias="SUMMARY_LENGTH")
     auto_generate_images: bool = Field(default=True, alias="AUTO_GENERATE_IMAGES")
-    auto_generate_charts: bool = Field(default=True, alias="AUTO_GENERATE_CHARTS")
     max_images_per_article: int = Field(default=10, alias="MAX_IMAGES_PER_ARTICLE")
 
 
@@ -156,7 +145,6 @@ class Config:
             self.doubao = DoubaoConfig()
             self.wechat = WeChatConfig()
             self.app = AppConfig()
-            self.chart = ChartConfig()
             self.api = APIConfig()
             self.image = ImageConfig()
             self.content = ContentConfig()
@@ -174,7 +162,6 @@ class Config:
             self.app.output_dir,
             self.app.output_dir / "html",
             self.app.output_dir / "images",
-            self.app.output_dir / "charts",
             self.app.log_file.parent,
         ]
 

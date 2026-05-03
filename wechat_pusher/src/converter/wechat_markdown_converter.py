@@ -188,9 +188,7 @@ def convert_markdown_content_to_wechat(
         first_h1.decompose()
 
     # 查找所有 h2 和 h3 标签并应用不同的样式（借鉴 doocs/md 的层级设计）
-    # 按文档顺序处理标题，以正确维护层级编号
-    h2_count = 0
-    h3_count = 0
+    # 注意：不自动添加序号，由 DeepSeek 在内容优化时处理
 
     # 获取所有标题并按在文档中的顺序排列
     all_headings = []
@@ -200,9 +198,6 @@ def convert_markdown_content_to_wechat(
     # 按顺序处理每个标题
     for heading in all_headings:
         if heading.name == "h2":
-            h2_count += 1
-            h3_count = 0  # 重置 h3 计数
-
             section_title = heading.get_text().strip()
             heading.clear()  # 清空原有内容
 
@@ -221,11 +216,9 @@ def convert_markdown_content_to_wechat(
                 "max-width: 100%;"
             )
             heading["data-heading"] = "true"
-            heading.string = f"{number_to_chinese(h2_count)}、{section_title}"
+            heading.string = section_title
 
         elif heading.name == "h3":
-            h3_count += 1
-
             section_title = heading.get_text().strip()
             heading.clear()  # 清空原有内容
 
@@ -244,7 +237,7 @@ def convert_markdown_content_to_wechat(
                 "max-width: 100%;"
             )
             heading["data-heading"] = "true"
-            heading.string = f"{h3_count:02d} {section_title}"
+            heading.string = section_title
 
     # 处理段落 - 添加样式（针对移动端优化）
     for p in soup.find_all("p"):

@@ -51,7 +51,7 @@ DEFAULT_AUTHOR=你的名字
 ```bash
 # DeepSeek AI（文本生成）
 DEEPSEEK_API_KEY=sk-xxx
-DEEPSEEK_MODEL=deepseek-reasoner
+DEEPSEEK_MODEL=deepseek-v4-pro
 
 # Doubao AI（图片生成）
 DOUBAO_API_KEY=xxx

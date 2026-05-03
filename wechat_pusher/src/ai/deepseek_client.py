@@ -1,6 +1,6 @@
 """
 DeepSeek AI客户端
-用于生成文章摘要、图表提示词、配图提示词等
+用于生成文章摘要、配图提示词等
 """
 import json
 from typing import Dict, List, Optional
@@ -25,17 +25,38 @@ class DeepSeekClient:
         self.max_tokens = config.deepseek.max_tokens
         self.temperature = config.deepseek.temperature
 
-        # 检测是否使用推理模型
-        self.is_reasoner = "reasoner" in self.model
+        # 检测是否使用新 V4 模型（默认开启思考模式）
+        self.is_v4_model = "deepseek-v4" in self.model
+        # 检测是否使用旧推理模型（即将弃用）
+        self.is_legacy_reasoner = "reasoner" in self.model
 
-        logger.info(f"DeepSeek客户端初始化完成，模型: {self.model} (推理模式: {self.is_reasoner})")
+        # 确定轻量级模型（用于简单任务：摘要、配图提示词）
+        # 如果当前配置是 pro，则 flash 用作轻量任务
+        # 如果当前配置是 flash，则所有任务都用 flash
+        if "deepseek-v4-pro" in self.model:
+            self.flash_model = "deepseek-v4-flash"
+        elif "deepseek-v4-flash" in self.model:
+            self.flash_model = self.model  # 已经是 flash，就用配置的模型
+        else:
+            # 旧模型或其他模型，不使用 flash
+            self.flash_model = None
+
+        logger.info(
+            f"DeepSeek客户端初始化完成，"
+            f"主模型: {self.model}, "
+            f"轻量模型: {self.flash_model or '未配置'} "
+            f"(V4模型: {self.is_v4_model}, 旧推理模型: {self.is_legacy_reasoner})"
+        )
 
     def _extract_reasoner_content(self, response: str) -> str:
         """
-        从推理模型的响应中提取最终答案
+        从旧推理模型（deepseek-reasoner）的响应中提取最终答案
+
+        注意：此方法仅用于旧推理模型（已弃用）
+        V4 模型的思考内容已自动隔离，无需提取
 
         Args:
-            response: API响应，可能包含<thinking>标签
+            response: API响应，可能包含<thinking>标签（仅旧模型）
 
         Returns:
             提取出的最终答案内容
@@ -120,7 +141,8 @@ class DeepSeekClient:
 摘要（{max_length}字以内）："""
 
             try:
-                response = self._call_api(prompt)
+                # 使用轻量级 flash 模型生成摘要（简单任务）
+                response = self._call_api(prompt, use_flash=True)
 
                 # 检查字符数（微信按字符统计：汉字、字母、标点都算1个字符）
                 char_count = len(response)
@@ -151,71 +173,6 @@ class DeepSeekClient:
                     return ""
 
         return ""
-
-    def generate_chart_prompt(self, content: str) -> Optional[Dict[str, any]]:
-        """
-        生成图表提示词和数据
-
-        Args:
-            content: 文章内容
-
-        Returns:
-            dict: 包含图表类型、标题、数据的字典，如果没有需要可视化的数据则返回None
-        """
-        logger.info("开始生成图表提示词")
-
-        prompt = f"""分析以下文章内容，判断是否需要生成数据图表。
-
-文章定位：深度科技洞察，面向专业读者，强调"洞察、启发、不说教"的风格。
-
-如果需要，请以JSON格式返回，格式如下：
-{{
-  "need_chart": true,
-  "chart_type": "bar|line|pie",
-  "title": "图表标题",
-  "data": {{
-    "labels": ["标签1", "标签2", "标签3"],
-    "values": [10, 20, 30],
-    "xlabel": "X轴标签",
-    "ylabel": "Y轴标签"
-  }},
-  "description": "图表说明文字"
-}}
-
-如果不需要数据可视化，返回：
-{{
-  "need_chart": false,
-  "reason": "不需要图表的原因"
-}}
-
-文章内容：
-{content[:3000]}
-
-返回JSON："""
-
-        try:
-            response = self._call_api(prompt, temperature=0.3)  # 降低温度以获得更确定的结果
-
-            # 解析JSON响应
-            try:
-                # 尝试从markdown代码块中提取JSON
-                json_str = self._extract_json_from_markdown(response)
-                result = json.loads(json_str)
-
-                if result.get("need_chart"):
-                    logger.info(f"需要生成图表，类型: {result.get('chart_type')}")
-                    return result
-                else:
-                    logger.info(f"不需要生成图表: {result.get('reason')}")
-                    return None
-
-            except json.JSONDecodeError:
-                logger.error(f"JSON解析失败: {response}")
-                return None
-
-        except Exception as e:
-            logger.error(f"图表提示词生成失败: {e}")
-            return None
 
     def generate_image_prompts(
         self, content: str, title: str
@@ -293,17 +250,48 @@ class DeepSeekClient:
             logger.error(f"配图提示词生成失败: {e}")
             return {"cover_prompts": [], "image_prompts": []}
 
-    def refine_content(self, content: str) -> str:
+    def refine_content(self, content: str, chart_requirements: List[Dict] = None) -> str:
         """
         优化文章内容，并在合适位置插入图片占位符（区分类型）
 
         Args:
             content: 原始内容
+            chart_requirements: 图表需求列表（可选）
+                [
+                    {
+                        "description": "图表描述",
+                        "chart_type": "bar|line|pie",
+                        "position": "插入位置说明",
+                        "has_data": bool,
+                        "data_hint": "数据提示"
+                    }
+                ]
 
         Returns:
             str: 优化后的内容（包含分类占位符）
         """
         logger.info("开始优化文章内容")
+
+        # 构建图表占位符提示
+        chart_placeholder_hint = ""
+        if chart_requirements:
+            chart_descriptions = []
+            for i, req in enumerate(chart_requirements, 1):
+                desc = req.get("description", "")
+                chart_type = req.get("chart_type", "bar")
+                position_hint = req.get("position", "")
+                data_hint = req.get("data_hint", "")
+
+                placeholder = f"[[CHART:{desc}]]"
+                hint = f"- 需求{i}: {placeholder}\n  类型: {chart_type}\n  建议位置: {position_hint}"
+                if data_hint:
+                    hint += f"\n  数据提示: {data_hint}"
+                chart_descriptions.append(hint)
+
+            chart_placeholder_hint = "\n【数据图表 - CHART】（必须插入）\n"
+            chart_placeholder_hint += "以下图表必须在优化后的内容中插入到合适位置：\n\n"
+            chart_placeholder_hint += "\n".join(chart_descriptions)
+            chart_placeholder_hint += "\n\n⚠️ 重要：这些图表是必须的，请务必在合适位置插入！"
 
         prompt = f"""请优化以下文章内容，使其更适合在微信公众号发布。
 
@@ -331,16 +319,9 @@ class DeepSeekClient:
 🎨 次要任务：插入图片占位符（辅助理解）
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-在能帮助读者理解的地方，插入以下两种占位符：
+在能帮助读者理解的地方，插入以下占位符：
 
-【类型1：数据图表 - CHART】
-用途：精确数值对比、时间趋势、占比分布
-格式：[[CHART:图表类型，坐标轴说明，数据（如果有）]]
-示例：
-  * [[CHART:柱状图，横轴年份2020-2024，纵轴能耗数值，对比传统和可再生能源挖矿]]
-  * [[CHART:折线图，横轴时间2019-2024，纵轴可再生能源占比%]]
-
-【类型2：概念插图 - IMAGE】
+【概念插图 - IMAGE】
 用途：视觉隐喻、场景示意、概念解释
 ⚠️ 重要：插图是纯视觉符号，不要包含任何文字、标签、标题！
 格式：[[IMAGE:纯视觉符号描述，不要文字]]
@@ -349,16 +330,42 @@ class DeepSeekClient:
   * [[IMAGE:十字路口路标，两条道路分叉，简洁示意图]]
   * [[IMAGE:抽象的比特币符号半透明化，视觉符号]]
 
+【数据图表 - CHART】
+用途：展示精确数据、趋势对比、占比分布
+格式：[[CHART:图表描述]]
+示例：
+  * [[CHART:2020-2024年中国新能源汽车销量增长趋势]]
+  * [[CHART:不同品牌的市场份额对比]]
+
+{chart_placeholder_hint}
+
 【插入原则】：
 - 只在**有帮助**的地方插入，不是越多越好
-- 有数据对比用CHART，概念解释用IMAGE
-- 一篇建议2-4张图片总数
+- 一篇建议2-4张图片总数（包括插图和图表）
 - 占位符单独成行，前后各空一行
 
+【插入位置限制 - 重要】：
+- ⚠️ **绝对不要在正文第一个段落之前插入任何图片占位符**
+- ⚠️ **封面图已经显示在文章顶部，正文开头不要再插入图片**
+- ⚠️ **第一张图片必须在第一个段落内容之后插入**
+- 💡 正确做法：让读者先阅读第一段文字，然后再看到第一张插图
+- 💡 建议：在第二段或第三段之后再考虑插入第一张图片
+
+【错误示例】：
+❌ 第一段内容
+[[IMAGE:插图]]  ← 错误：不要在第一段之前插入
+
+【正确示例】：
+✅ 第一段内容
+
+第二段内容
+
+[[IMAGE:插图]]  ← 正确：在展开论述后插入
+
 【保留原文占位符】：
-如果原文已有占位符（特别是包含数据的），必须保留！
-  * 原文：[[CHART:柱状图，数据：A: 10%, B: 20%]] → 保留不变
-  * 原文：[[CHART:折线图，从6%调整到9%]] → 保留不变
+如果原文已有占位符，必须保留！
+  * 原文：[[IMAGE:描述]] → 保留不变
+  * 原文：[[CHART:描述]] → 保留不变
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -381,15 +388,126 @@ class DeepSeekClient:
                 f"({chart_count}个数据图表 + {image_count}个概念插图)"
             )
 
+            # 如果提供了图表需求，检查是否插入了对应数量的图表
+            if chart_requirements:
+                expected_charts = len(chart_requirements)
+                if chart_count < expected_charts:
+                    logger.warning(
+                        f"⚠️  预期插入 {expected_charts} 个图表，实际只插入 {chart_count} 个"
+                    )
+
             return response
 
         except Exception as e:
             logger.error(f"内容优化失败: {e}")
             return content  # 失败时返回原文
 
+    def analyze_chart_requirements(self, content: str, title: str) -> Dict:
+        """
+        分析文章是否需要生成图表
+
+        Args:
+            content: 文章内容
+            title: 文章标题
+
+        Returns:
+            dict: 图表需求分析结果
+                {
+                    "needs_charts": bool,  # 是否需要生成图表
+                    "requirements": [     # 图表需求列表
+                        {
+                            "description": "图表描述",
+                            "chart_type": "bar|line|pie",
+                            "position": "插入位置说明",
+                            "has_data": bool,  # 文章是否包含所需数据
+                            "data_hint": "数据提示（如果有）"
+                        }
+                    ]
+                }
+        """
+        logger.info("开始分析图表需求...")
+
+        prompt = f"""请分析以下文章是否需要生成数据图表来增强说明效果。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 图表需求分析任务
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【判断标准】：
+1. 是否包含可以量化的数据（趋势、对比、占比等）
+2. 是否适合用图表可视化（折线图、柱状图、饼图）
+3. 图表是否能帮助读者更好理解内容
+
+【图表类型选择】：
+- 折线图 (line)：时间序列变化、趋势走向
+- 柱状图 (bar)：数量对比、并列数据
+- 饼图 (pie)：占比分布、百分比构成
+
+【返回格式】：
+请以JSON格式返回：
+{{
+  "needs_charts": true/false,
+  "requirements": [
+    {{
+      "description": "图表的简短描述（用于数据搜索）",
+      "chart_type": "bar/line/pie",
+      "position": "建议插入位置的上下文说明",
+      "has_data": true/false,
+      "data_hint": "如果文章中有数据，简要说明数据位置和内容"
+    }}
+  ]
+}}
+
+【重要】：
+- needs_charts=false 时，requirements 为空数组
+- 每篇文章最多建议 2-3 个图表
+- 只在真正能增强理解的地方建议图表
+- 如果文章中没有明确数据，设置 has_data=false
+
+文章标题：{title}
+
+文章内容：
+{content[:3000]}
+
+返回JSON："""
+
+        try:
+            response = self._call_api(prompt)
+
+            # 解析JSON响应
+            try:
+                json_str = self._extract_json_from_markdown(response)
+                result = json.loads(json_str)
+
+                needs_charts = result.get("needs_charts", False)
+                requirements = result.get("requirements", [])
+
+                logger.info(
+                    f"图表需求分析完成: 需要图表={needs_charts}, "
+                    f"需求数量={len(requirements)}"
+                )
+
+                if needs_charts and requirements:
+                    logger.debug("图表需求详情：")
+                    for i, req in enumerate(requirements, 1):
+                        logger.debug(f"  需求{i}:")
+                        logger.debug(f"    描述: {req.get('description')}")
+                        logger.debug(f"    类型: {req.get('chart_type')}")
+                        logger.debug(f"    包含数据: {req.get('has_data')}")
+
+                return result
+
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON解析失败: {e}, 响应: {response}")
+                return {"needs_charts": False, "requirements": []}
+
+        except Exception as e:
+            logger.error(f"图表需求分析失败: {e}")
+            return {"needs_charts": False, "requirements": []}
+
     def extract_image_placeholders(self, content: str) -> Dict[str, List[str]]:
         """
-        从内容中提取并分类图片占位符
+        从内容中提取图片占位符
 
         Args:
             content: 包含占位符的内容
@@ -397,49 +515,54 @@ class DeepSeekClient:
         Returns:
             Dict[str, List[str]]: 分类后的占位符描述
                 {
-                    "charts": ["图表1描述", "图表2描述", ...],  # CHART占位符
-                    "images": ["插图1描述", "插图2描述", ...]   # IMAGE占位符
+                    "images": ["插图1描述", "插图2描述", ...],   # IMAGE占位符
+                    "charts": ["图表1描述", "图表2描述", ...]    # CHART占位符
                 }
         """
         import re
-
-        # 提取CHART占位符：[[CHART:描述]]
-        chart_pattern = r'\[\[CHART:([^\]]+)\]\]'
-        chart_matches = re.findall(chart_pattern, content)
 
         # 提取IMAGE占位符：[[IMAGE:描述]]
         image_pattern = r'\[\[IMAGE:([^\]]+)\]\]'
         image_matches = re.findall(image_pattern, content)
 
+        # 提取CHART占位符：[[CHART:描述]]
+        chart_pattern = r'\[\[CHART:([^\]]+)\]\]'
+        chart_matches = re.findall(chart_pattern, content)
+
         result = {
-            "charts": chart_matches,
-            "images": image_matches
+            "images": image_matches,
+            "charts": chart_matches
         }
 
-        total_count = len(chart_matches) + len(image_matches)
+        total_count = len(image_matches) + len(chart_matches)
 
         if total_count > 0:
             logger.info(
                 f"从内容中提取到 {total_count} 个占位符 "
-                f"({len(chart_matches)}个数据图表 + {len(image_matches)}个概念插图)"
+                f"({len(image_matches)}个插图 + {len(chart_matches)}个图表)"
             )
-
-            if chart_matches:
-                logger.debug("数据图表占位符：")
-                for i, desc in enumerate(chart_matches, 1):
-                    logger.debug(f"  CHART{i}: {desc}")
 
             if image_matches:
                 logger.debug("概念插图占位符：")
                 for i, desc in enumerate(image_matches, 1):
                     logger.debug(f"  IMAGE{i}: {desc}")
+
+            if chart_matches:
+                logger.debug("数据图表占位符：")
+                for i, desc in enumerate(chart_matches, 1):
+                    logger.debug(f"  CHART{i}: {desc}")
         else:
             logger.info("未检测到任何占位符")
 
         return result
 
     def _call_api(
-        self, prompt: str, temperature: Optional[float] = None, max_tokens: Optional[int] = None
+        self,
+        prompt: str,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        model: Optional[str] = None,
+        use_flash: bool = False,
     ) -> str:
         """
         调用DeepSeek API
@@ -448,33 +571,65 @@ class DeepSeekClient:
             prompt: 提示词
             temperature: 温度参数（可选）
             max_tokens: 最大token数（可选）
+            model: 指定使用的模型（可选，覆盖默认模型）
+            use_flash: 是否使用轻量级flash模型（仅V4模型支持）
 
         Returns:
             str: API响应内容
         """
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
+            # 确定使用的模型
+            if model:
+                # 显式指定模型
+                actual_model = model
+            elif use_flash and self.flash_model:
+                # 使用轻量级flash模型（用于简单任务）
+                actual_model = self.flash_model
+            else:
+                # 使用默认模型
+                actual_model = self.model
+
+            # 构建请求参数
+            request_params = {
+                "model": actual_model,
+                "messages": [
                     {
                         "role": "system",
                         "content": "你是一个专业的深度科技内容创作者，擅长为微信公众号撰写高质量的技术洞察文章。你的风格特点是：洞察深刻、启发思考、不说教。目标读者是科技从业者和专业投资者，不是泛流量用户。"
                     },
                     {"role": "user", "content": prompt},
                 ],
-                temperature=temperature or self.temperature,
-                max_tokens=max_tokens or self.max_tokens,
-            )
+                "temperature": temperature or self.temperature,
+                "max_tokens": max_tokens or self.max_tokens,
+            }
+
+            # V4 模型默认开启思考模式
+            # flash 模型也支持思考模式，可以降低推理强度
+            if "deepseek-v4" in actual_model:
+                # 根据是否为 flash 模型调整思考强度
+                reasoning_effort = "high" if "pro" in actual_model else "enabled"
+                request_params["extra_body"] = {
+                    "thinking": {
+                        "type": "enabled",
+                        "reasoning_effort": reasoning_effort
+                    }
+                }
+
+            response = self.client.chat.completions.create(**request_params)
 
             raw_content = response.choices[0].message.content.strip()
 
-            # 如果是推理模型，提取最终答案（去除思考过程）
-            if self.is_reasoner:
+            # V4 模型和旧推理模型的响应处理方式不同
+            # V4 模型：思考内容通常在单独的字段中，不会污染 content
+            # 旧推理模型：思考内容在 <thinking> 标签中
+            if self.is_legacy_reasoner or ("reasoner" in actual_model):
+                # 旧推理模型：提取 <thinking> 标签后的内容
                 final_content = self._extract_reasoner_content(raw_content)
-                logger.debug(f"推理模型响应已处理，原始长度: {len(raw_content)}, 提取后: {len(final_content)}")
+                logger.debug(f"旧推理模型响应已处理，原始长度: {len(raw_content)}, 提取后: {len(final_content)}")
                 return final_content
-
-            return raw_content
+            else:
+                # V4 模型：直接返回 content（思考内容不在 content 中）
+                return raw_content
 
         except Exception as e:
             logger.error(f"DeepSeek API调用失败: {e}")

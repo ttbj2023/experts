@@ -2,21 +2,30 @@
 微信公众号文章自动发布工作流
 """
 import os
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import re
 
 from src.ai.deepseek_client import deepseek_client
 from src.ai.doubao_client import doubao_client
-from src.chart.chart_generator import chart_generator
 from src.converter.markdown_parser import MarkdownParser
 from src.wechat.api_client import wechat_api_client
 from src.utils.config import config
 from src.utils.logger import get_logger
-from src.services.chart_data_finder import get_chart_data_finder
 from src.utils.watermark_remover import watermark_remover
 
 logger = get_logger(__name__)
+
+# ChartMaker 配置
+CHARTMAKER_PATH = Path("/mnt/wsl/PHYSICALDRIVE2/assistant-experts/chartmaker")
+CHARTMAKER_VENV_PYTHON = CHARTMAKER_PATH / ".venv/bin/python"
+CHARTMAKER_AVAILABLE = CHARTMAKER_PATH.exists() and CHARTMAKER_VENV_PYTHON.exists()
+
+if CHARTMAKER_AVAILABLE:
+    logger.info(f"✅ ChartMaker可用: {CHARTMAKER_VENV_PYTHON}")
+else:
+    logger.warning(f"⚠️  ChartMaker不可用: {CHARTMAKER_PATH}")
 
 
 class ArticlePublisher:
@@ -32,13 +41,6 @@ class ArticlePublisher:
         self.fixed_author = fixed_author or config.article.default_author or "饕韬不绝"
         self.output_dir = Path(config.app.output_dir)
         self.output_dir.mkdir(exist_ok=True)
-
-        # 初始化图表数据查找器（使用Gemini + Google Search）
-        self.chart_data_finder = get_chart_data_finder()
-        if self.chart_data_finder.is_available():
-            logger.info("✅ 图表数据自动查找已启用（Gemini + Google Search）")
-        else:
-            logger.warning("⚠️  图表数据查找器不可用")
 
         # 初始化各个组件
         self.parser = MarkdownParser()
@@ -87,9 +89,10 @@ class ArticlePublisher:
                 {
                     "summary": "摘要",
                     "cover_prompt": "封面提示词",
+                    "chart_requirements": [...],  # 图表需求列表
                     "placeholders": {
-                        "charts": ["图表1描述", ...],
-                        "images": ["插图1描述", ...]
+                        "images": ["插图1描述", ...],
+                        "charts": ["图表1描述", ...]
                     },
                     "refined_content": "优化后的内容（包含占位符）"
                 }
@@ -99,12 +102,12 @@ class ArticlePublisher:
         result = {}
 
         # 1. 生成摘要
-        logger.info("1/3 生成摘要...")
+        logger.info("1/4 生成摘要...")
         result["summary"] = deepseek_client.generate_summary(content)
         logger.info(f"✅ 摘要生成成功: {len(result['summary'])}字符")
 
         # 2. 生成封面图提示词
-        logger.info("2/3 生成封面图提示词...")
+        logger.info("2/4 生成封面图提示词...")
         prompts = deepseek_client.generate_image_prompts(content, title)
         result["cover_prompt"] = prompts.get("cover_prompts", [""])[0] if prompts.get("cover_prompts") else ""
         if result["cover_prompt"]:
@@ -112,17 +115,33 @@ class ArticlePublisher:
         else:
             logger.warning("⚠️  封面图提示词生成失败")
 
-        # 3. 优化内容并插入分类占位符
-        logger.info("3/3 优化文章内容（包含分类占位符）...")
-        result["refined_content"] = deepseek_client.refine_content(content)
+        # 3. 分析图表需求（并行任务）
+        logger.info("3/4 分析图表需求...")
+        chart_analysis = deepseek_client.analyze_chart_requirements(content, title)
+        result["chart_requirements"] = chart_analysis.get("requirements", [])
+        needs_charts = chart_analysis.get("needs_charts", False)
+        logger.info(
+            f"✅ 图表需求分析完成: 需要图表={needs_charts}, "
+            f"需求数量={len(result['chart_requirements'])}"
+        )
+
+        # 4. 优化内容并插入分类占位符（传入图表需求）
+        logger.info("4/4 优化文章内容（包含分类占位符）...")
+        result["refined_content"] = deepseek_client.refine_content(
+            content,
+            chart_requirements=result["chart_requirements"] if needs_charts else None
+        )
 
         # 从优化后的内容中提取并分类占位符
         placeholders = deepseek_client.extract_image_placeholders(result["refined_content"])
         result["placeholders"] = placeholders
 
+        total_images = len(placeholders.get("images", []))
+        total_charts = len(placeholders.get("charts", []))
+
         logger.info(
-            f"✅ 内容优化完成，提取到 {len(placeholders['charts'])} 个图表占位符 "
-            f"和 {len(placeholders['images'])} 个插图占位符"
+            f"✅ 内容优化完成，提取到 {total_images} 个插图占位符 "
+            f"+ {total_charts} 个图表占位符"
         )
 
         return result
@@ -147,7 +166,7 @@ class ArticlePublisher:
                 {
                     "covers": ["封面图1路径", ...],
                     "illustrations": ["插图1路径", ...],  # AI生成的概念图
-                    "charts": ["图表路径", ...]          # Matplotlib生成的数据图表
+                    "charts": []  # 图表路径（由 generate_charts 填充）
                 }
         """
         logger.info("开始生成图片...")
@@ -155,13 +174,13 @@ class ArticlePublisher:
         result = {
             "covers": [],
             "illustrations": [],
-            "charts": []
+            "charts": []  # 预留图表位置，由 publish 方法填充
         }
 
         article_dir = self.output_dir / article_id
         article_dir.mkdir(exist_ok=True)
 
-        placeholders = ai_result.get("placeholders", {"charts": [], "images": []})
+        placeholders = ai_result.get("placeholders", {"images": [], "charts": []})
 
         # 1. 生成封面图
         cover_prompt = ai_result.get("cover_prompt", "")
@@ -185,57 +204,7 @@ class ArticlePublisher:
         else:
             logger.warning("⚠️  未提供封面图提示词，跳过封面图生成")
 
-        # 2. 根据CHART占位符生成数据图表（使用Gemini查找数据）
-        chart_descriptions = placeholders.get("charts", [])
-        if chart_descriptions:
-            logger.info(f"检测到 {len(chart_descriptions)} 个数据图表占位符")
-            for i, desc in enumerate(chart_descriptions, 1):
-                logger.info(f"处理图表{i}/{len(chart_descriptions)}...")
-                logger.debug(f"  描述: {desc}")
-
-                # 使用Gemini + Google Search自动查找数据
-                chart_data_result = self.chart_data_finder.find_chart_data(desc)
-
-                if chart_data_result and chart_data_result.get("found"):
-                    # 成功找到数据，生成图表
-                    chart_path = str(article_dir / f"chart_{i}.png")
-
-                    # 构建图表配置
-                    chart_config = {
-                        "chart_type": chart_data_result.get("chart_type", "line"),
-                        "title": chart_data_result.get("title", "数据图表"),
-                        "data": {
-                            "labels": chart_data_result.get("labels", []),
-                            "values": chart_data_result.get("values", []),
-                            "xlabel": chart_data_result.get("xlabel", ""),
-                            "ylabel": chart_data_result.get("ylabel", "")
-                        }
-                    }
-
-                    try:
-                        generated_path = chart_generator.generate_chart(
-                            chart_data=chart_config,
-                            save_path=chart_path
-                        )
-                        if generated_path:
-                            result["charts"].append(generated_path)
-                            logger.info(f"✅ 图表{i}生成成功")
-                            # 记录数据来源
-                            source = chart_data_result.get("source", "N/A")
-                            if source != "N/A":
-                                logger.info(f"  数据来源: {source}")
-                    except Exception as e:
-                        logger.error(f"❌ 图表{i}生成失败: {e}")
-                        import traceback
-                        logger.debug(traceback.format_exc())
-                else:
-                    # 未找到数据，跳过此图表
-                    reason = chart_data_result.get("reason", "未知原因") if chart_data_result else "查找器不可用"
-                    logger.warning(f"⚠️  跳过图表{i}（未找到数据: {reason}）")
-                    logger.info(f"   💡 提示：可以在占位符中明确提供数据，或简化描述")
-
-
-        # 3. 根据IMAGE占位符生成概念插图（Doubao）
+        # 2. 根据IMAGE占位符生成概念插图（Doubao）
         image_descriptions = placeholders.get("images", [])
         if image_descriptions:
             logger.info(f"检测到 {len(image_descriptions)} 个概念插图占位符")
@@ -261,8 +230,143 @@ class ArticlePublisher:
 
         logger.info(
             f"图片生成完成: {len(result['covers'])}封面 + "
-            f"{len(result['illustrations'])}插图 + {len(result['charts'])}图表"
+            f"{len(result['illustrations'])}插图"
         )
+        return result
+
+    def generate_charts(self, chart_requirements: List[Dict], article_id: str) -> List[str]:
+        """
+        生成图表（通过 subprocess 调用 chartmaker）
+
+        Args:
+            chart_requirements: 图表需求列表
+                [
+                    {
+                        "description": "图表描述",
+                        "chart_type": "bar|line|pie",
+                        "position": "插入位置",
+                        "has_data": bool,
+                        "data_hint": "数据提示"
+                    }
+                ]
+            article_id: 文章ID
+
+        Returns:
+            List[str]: 生成的图表路径列表
+        """
+        if not CHARTMAKER_AVAILABLE:
+            logger.warning("ChartMaker不可用，跳过图表生成")
+            return []
+
+        if not chart_requirements:
+            logger.info("没有图表需求，跳过图表生成")
+            return []
+
+        logger.info(f"开始生成图表，需求数量: {len(chart_requirements)}")
+
+        result = []
+        article_dir = self.output_dir / article_id
+        article_dir.mkdir(exist_ok=True)
+
+        for i, req in enumerate(chart_requirements, 1):
+            description = req.get("description", "")
+            chart_type = req.get("chart_type", "bar")
+            position = req.get("position", "")
+            has_data = req.get("has_data", False)
+
+            logger.info(f"生成图表{i}/{len(chart_requirements)}...")
+            logger.debug(f"  描述: {description}")
+            logger.debug(f"  类型: {chart_type}")
+            logger.debug(f"  位置: {position}")
+            logger.debug(f"  包含数据: {has_data}")
+
+            # 生成输出路径
+            output_path = str(article_dir / f"chart_{i}.png")
+
+            try:
+                # 使用 subprocess 调用 chartmaker 的虚拟环境
+                import subprocess
+                import json
+                import tempfile
+
+                # 创建临时文件来存储 JSON 结果
+                with tempfile.NamedTemporaryFile(mode='w+', suffix='.json', delete=False) as f:
+                    result_file = f.name
+
+                # 创建一个临时的 Python 脚本来调用 chartmaker
+                script_content = f'''
+import sys
+import logging
+# 禁用日志输出，避免干扰 JSON
+logging.disable(logging.CRITICAL)
+
+sys.path.insert(0, "{CHARTMAKER_PATH}/src")
+from core.engine import chartmaker
+
+result = chartmaker.create_chart(
+    description="{description}",
+    chart_type="{chart_type}",
+    output_path="{output_path}"
+)
+
+# 输出结果为 JSON 到文件
+import json
+with open("{result_file}", "w") as f:
+    json.dump({{
+        "success": result.success,
+        "image_path": result.image_path,
+        "data_source": result.data_source,
+        "error_message": result.error_message
+    }}, f, ensure_ascii=False)
+'''
+
+                # 运行脚本
+                process_result = subprocess.run(
+                    [str(CHARTMAKER_VENV_PYTHON), "-c", script_content],
+                    capture_output=True,
+                    text=True,
+                    timeout=120,  # 2分钟超时
+                    cwd=str(CHARTMAKER_PATH)
+                )
+
+                # 读取结果文件
+                try:
+                    with open(result_file, 'r') as f:
+                        chart_result = json.load(f)
+
+                    if chart_result.get("success"):
+                        image_path = chart_result.get("image_path")
+                        if image_path and Path(image_path).exists():
+                            result.append(image_path)
+                            logger.info(
+                                f"✅ 图表{i}生成成功: {image_path}, "
+                                f"数据来源: {chart_result.get('data_source') or '未知'}"
+                            )
+                        else:
+                            logger.warning(f"⚠️  图表{i}生成失败: 图片文件不存在")
+                    else:
+                        logger.warning(
+                            f"⚠️  图表{i}生成失败: {chart_result.get('error_message')}"
+                        )
+                except FileNotFoundError:
+                    logger.warning(f"⚠️  图表{i}响应文件未找到")
+                    if process_result.stderr:
+                        logger.debug(f"  stderr: {process_result.stderr[-500:]}")
+                except json.JSONDecodeError as e:
+                    logger.warning(f"⚠️  图表{i}响应解析失败: {e}")
+                finally:
+                    # 清理临时文件
+                    try:
+                        Path(result_file).unlink()
+                    except:
+                        pass
+
+            except subprocess.TimeoutExpired:
+                logger.error(f"❌ 图表{i}生成超时")
+            except Exception as e:
+                logger.error(f"❌ 图表{i}生成异常: {e}")
+
+        logger.info(f"图表生成完成，成功生成 {len(result)}/{len(chart_requirements)} 个")
         return result
 
 
@@ -272,6 +376,11 @@ class ArticlePublisher:
 
         Args:
             images: 图片路径字典
+                {
+                    "covers": ["封面图路径", ...],
+                    "illustrations": ["插图路径", ...],
+                    "charts": ["图表路径", ...]
+                }
 
         Returns:
             dict: 素材信息字典
@@ -290,7 +399,7 @@ class ArticlePublisher:
         }
 
         # 上传封面图
-        for i, cover_path in enumerate(images["covers"], 1):
+        for i, cover_path in enumerate(images.get("covers", []), 1):
             logger.info(f"上传封面图{i}/{len(images['covers'])}...")
             media_info = wechat_api_client.upload_media(cover_path, "image")
             if media_info:
@@ -298,7 +407,7 @@ class ArticlePublisher:
                 logger.info(f"✅ 封面图上传成功: {media_info['media_id']}")
 
         # 上传插图
-        for i, illu_path in enumerate(images["illustrations"], 1):
+        for i, illu_path in enumerate(images.get("illustrations", []), 1):
             logger.info(f"上传插图{i}/{len(images['illustrations'])}...")
             media_info = wechat_api_client.upload_media(illu_path, "image")
             if media_info:
@@ -306,7 +415,7 @@ class ArticlePublisher:
                 logger.info(f"✅ 插图上传成功")
 
         # 上传图表
-        for i, chart_path in enumerate(images["charts"], 1):
+        for i, chart_path in enumerate(images.get("charts", []), 1):
             logger.info(f"上传图表{i}/{len(images['charts'])}...")
             media_info = wechat_api_client.upload_media(chart_path, "image")
             if media_info:
@@ -342,13 +451,13 @@ class ArticlePublisher:
         )
         logger.info(f"✅ HTML生成成功，长度: {len(html_with_summary)}字符")
 
-        # 2. 嵌入封面图（在文章开头）
+        # 2. 嵌入封面图（直接插入文章开头，不需要占位符）
         logger.info("2/3 嵌入封面图...")
         html_with_cover = self._embed_cover_image(html_with_summary, media_infos)
         logger.info("✅ 封面图嵌入完成")
 
-        # 3. 嵌入其他图片（使用真实URL）
-        logger.info("3/3 嵌入其他图片...")
+        # 3. 嵌入其他图片（插图和图表，使用真实URL）
+        logger.info("3/3 嵌入插图和图表...")
         html_with_images = self._embed_images(html_with_cover, media_infos)
         logger.info("✅ 图片嵌入完成")
 
@@ -378,26 +487,14 @@ class ArticlePublisher:
         # 获取第一张封面图
         cover_url = covers[0]['url']
 
-        # 创建封面图HTML
+        # 创建封面图HTML（单独成section，底部留白）
         cover_html = f'''<section style="text-align: center; margin: 0 0 24px 0;">
   <img src="{cover_url}" style="max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 4px;" />
 </section>'''
 
-        # 在HTML开头插入封面图（在第一个section标签之后）
-        # 查找第一个section标签的位置
-        import re
-        section_pattern = r'<section[^>]*>'
-        match = re.search(section_pattern, html)
-
-        if match:
-            # 在第一个section标签之后插入封面图
-            insert_pos = match.end()
-            html_with_cover = html[:insert_pos] + cover_html + html[insert_pos:]
-            logger.info(f"✅ 封面图已嵌入文章开头")
-        else:
-            # 如果找不到section标签，直接在开头插入
-            html_with_cover = cover_html + html
-            logger.info(f"✅ 封面图已嵌入HTML开头")
+        # 直接在HTML开头插入封面图
+        html_with_cover = cover_html + html
+        logger.info(f"✅ 封面图已嵌入文章开头")
 
         return html_with_cover
 
@@ -410,7 +507,7 @@ class ArticlePublisher:
             media_infos: 素材信息字典（包含media_id和url）
                 {
                     "illustrations": [{"media_id": "xxx", "url": "https://..."}, ...],
-                    "charts": [{"media_id": "yyy", "url": "https://..."}, ...]
+                    "charts": [{"media_id": "xxx", "url": "https://..."}, ...]
                 }
 
         Returns:
@@ -422,31 +519,7 @@ class ArticlePublisher:
         illustrations = media_infos.get("illustrations", [])
         charts = media_infos.get("charts", [])
 
-        # 1. 替换CHART占位符 [[CHART:描述]]
-        chart_pattern = r'\[\[CHART:[^\]]+\]\]'
-        chart_placeholders = re.findall(chart_pattern, result)
-
-        logger.info(f"替换 {len(chart_placeholders)} 个CHART占位符")
-
-        if len(chart_placeholders) != len(charts):
-            logger.warning(
-                f"⚠️  CHART占位符数量({len(chart_placeholders)})与生成图表数量({len(charts)})不匹配"
-            )
-
-        for i, placeholder in enumerate(chart_placeholders):
-            if i < len(charts):
-                img_url = charts[i]['url']
-                img_tag = f'''<section style="text-align: center; margin: 20px 0;">
-  <img src="{img_url}" style="max-width: 100%; height: auto; display: block; margin: 0 auto;" />
-</section>'''
-
-                result = result.replace(placeholder, img_tag, 1)
-                logger.info(f"✅ 已替换CHART占位符{i+1}/{len(chart_placeholders)}")
-            else:
-                logger.warning(f"⚠️  CHART占位符{i+1}没有对应的图表，移除占位符")
-                result = result.replace(placeholder, "", 1)
-
-        # 2. 替换IMAGE占位符 [[IMAGE:描述]]
+        # 替换IMAGE占位符 [[IMAGE:描述]]
         image_pattern = r'\[\[IMAGE:[^\]]+\]\]'
         image_placeholders = re.findall(image_pattern, result)
 
@@ -468,7 +541,33 @@ class ArticlePublisher:
                 logger.info(f"✅ 已替换IMAGE占位符{i+1}/{len(image_placeholders)}")
             else:
                 logger.warning(f"⚠️  IMAGE占位符{i+1}没有对应的插图，移除占位符")
-                result = result.replace(placeholder, "", 1)
+                # 移除占位符并清理多余的空行
+                result = re.sub(r'\n\s*\n\s*', '\n\n', result.replace(placeholder, "", 1))
+
+        # 替换CHART占位符 [[CHART:描述]]
+        chart_pattern = r'\[\[CHART:[^\]]+\]\]'
+        chart_placeholders = re.findall(chart_pattern, result)
+
+        logger.info(f"替换 {len(chart_placeholders)} 个CHART占位符")
+
+        if len(chart_placeholders) != len(charts):
+            logger.warning(
+                f"⚠️  CHART占位符数量({len(chart_placeholders)})与生成图表数量({len(charts)})不匹配"
+            )
+
+        for i, placeholder in enumerate(chart_placeholders):
+            if i < len(charts):
+                img_url = charts[i]['url']
+                img_tag = f'''<section style="text-align: center; margin: 20px 0;">
+  <img src="{img_url}" style="max-width: 100%; height: auto; display: block; margin: 0 auto;" />
+</section>'''
+
+                result = result.replace(placeholder, img_tag, 1)
+                logger.info(f"✅ 已替换CHART占位符{i+1}/{len(chart_placeholders)}")
+            else:
+                logger.warning(f"⚠️  CHART占位符{i+1}没有对应的图表，移除占位符")
+                # 移除占位符并清理多余的空行
+                result = re.sub(r'\n\s*\n\s*', '\n\n', result.replace(placeholder, "", 1))
 
         return result
 
@@ -554,7 +653,7 @@ class ArticlePublisher:
             # 2. AI分析
             ai_result = self.analyze_with_ai(title, content)
 
-            # 3. 生成图片和图表
+            # 3. 生成图片
             article_id = f"{int(time.time())}"
             images = self.generate_images(ai_result, article_id)
 
@@ -563,17 +662,28 @@ class ArticlePublisher:
                 logger.error("❌ 未生成封面图，无法继续")
                 return False
 
-            # 4. 上传素材到微信
+            # 4. 生成图表（如果需要）
+            chart_requirements = ai_result.get("chart_requirements", [])
+            if chart_requirements:
+                logger.info(f"检测到 {len(chart_requirements)} 个图表需求，开始生成...")
+                chart_paths = self.generate_charts(chart_requirements, article_id)
+                # 将图表路径添加到 images 字典
+                images["charts"] = chart_paths
+            else:
+                images["charts"] = []
+                logger.info("没有图表需求，跳过图表生成")
+
+            # 5. 上传素材到微信（包括封面图、插图、图表）
             media_ids = self.upload_media_to_wechat(images)
 
-            # 5. 转换为HTML并嵌入图片（传入summary）
+            # 6. 转换为HTML并嵌入图片（传入summary）
             html_content = self.convert_to_html(
                 refined_content=ai_result["refined_content"],
                 summary=ai_result["summary"],
                 media_infos=media_ids
             )
 
-            # 6. 发布到草稿箱
+            # 7. 发布到草稿箱
             draft_media_id = self.publish_to_draft(
                 title=title,
                 html_content=html_content,

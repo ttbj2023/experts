@@ -34,22 +34,35 @@ class WatermarkRemover:
         watermark_remover_path = config.watermark_removal.watermark_remover_path
         self.watermark_remover_path = Path(watermark_remover_path)
         self.remwm_script = self.watermark_remover_path / "remwm.py"
-        self.venv_python = self.watermark_remover_path / ".venv" / "bin" / "python"
+
+        # 使用 conda 环境
+        self.use_conda = True
+        self.conda_env = "watermark-remover"
 
         # 检查 WatermarkRemover-AI 是否存在
         if not self.remwm_script.exists():
             logger.warning(f"⚠️  WatermarkRemover-AI 未找到: {self.remwm_script}")
             logger.warning("⚠️  水印去除功能将不可用")
             self.available = False
-        elif not self.venv_python.exists():
-            logger.warning(f"⚠️  WatermarkRemover-AI 虚拟环境未找到: {self.venv_python}")
-            logger.warning("⚠️  水印去除功能将不可用")
-            self.available = False
         else:
-            self.available = True
-            logger.info(f"✅ WatermarkRemover-AI 已找到: {self.remwm_script}")
-            logger.info(f"✅ 使用虚拟环境: {self.venv_python}")
-            logger.info(f"✅ 水印去除功能已启用")
+            # 测试 conda 环境是否可用
+            try:
+                result = subprocess.run(
+                    ["conda", "run", "-n", self.conda_env, "python", "--version"],
+                    capture_output=True,
+                    timeout=10
+                )
+                if result.returncode == 0:
+                    self.available = True
+                    logger.info(f"✅ WatermarkRemover-AI 已找到: {self.remwm_script}")
+                    logger.info(f"✅ 使用 conda 环境: {self.conda_env}")
+                    logger.info(f"✅ 水印去除功能已启用")
+                else:
+                    logger.warning("⚠️  conda 环境不可用")
+                    self.available = False
+            except Exception as e:
+                logger.warning(f"⚠️  无法测试 conda 环境: {e}")
+                self.available = False
 
     def remove_watermark(
         self,
@@ -92,10 +105,10 @@ class WatermarkRemover:
         try:
             logger.info(f"开始去除水印: {input_path.name}")
 
-            # 构建命令（使用虚拟环境的 Python）
+            # 构建命令（使用 conda 环境）
             cmd = [
-                str(self.venv_python),
-                str(self.remwm_script),
+                "conda", "run", "-n", self.conda_env,
+                "python", str(self.remwm_script),
                 str(input_path),
                 output_dir,
                 "--overwrite"
@@ -104,10 +117,9 @@ class WatermarkRemover:
             # 执行命令
             result = subprocess.run(
                 cmd,
-                cwd=str(self.watermark_remover_path),
                 capture_output=True,
                 text=True,
-                timeout=120  # 2分钟超时
+                timeout=300  # 5分钟超时（首次运行需要下载模型）
             )
 
             if result.returncode == 0:
