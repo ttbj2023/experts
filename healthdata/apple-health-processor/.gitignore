@@ -8,3 +8,4 @@ build/
 
 # 原始导出数据（~655MB）
 *.xml
+!tests/fixtures/*.xml
