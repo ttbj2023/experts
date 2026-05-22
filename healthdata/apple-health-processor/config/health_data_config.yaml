@@ -1,0 +1,204 @@
+# Apple Health 数据类型映射配置
+# 定义 HealthKit 类型到输出字段的映射关系
+
+# 数据类型映射
+type_mappings:
+  # 体重相关
+  - hk_type: "HKQuantityTypeIdentifierBodyMass"
+    field: "body_mass_kg"
+    aggregation: "first"  # 晨起值（6-10点首个值）
+    unit: "kg"
+
+  # 步数
+  - hk_type: "HKQuantityTypeIdentifierStepCount"
+    field: "steps"
+    aggregation: "sum"
+    unit: "count"
+
+  # 能量消耗
+  - hk_type: "HKQuantityTypeIdentifierActiveEnergyBurned"
+    field: "active_energy_kcal"
+    aggregation: "sum"
+    unit: "kcal"
+
+  - hk_type: "HKQuantityTypeIdentifierBasalEnergyBurned"
+    field: "basal_energy_kcal"
+    aggregation: "sum"
+    unit: "kcal"
+
+  # 距离
+  - hk_type: "HKQuantityTypeIdentifierDistanceWalkingRunning"
+    field: "distance_km"
+    aggregation: "sum"
+    unit: "km"
+
+  # 运动时间
+  - hk_type: "HKQuantityTypeIdentifierAppleExerciseTime"
+    field: "exercise_minutes"
+    aggregation: "sum"
+    unit: "min"
+
+  # 心率相关
+  - hk_type: "HKQuantityTypeIdentifierRestingHeartRate"
+    field: "resting_hr_bpm"
+    aggregation: "mean"
+    unit: "bpm"
+
+  - hk_type: "HKQuantityTypeIdentifierHeartRateVariabilitySDNN"
+    field: "hrv_ms"
+    aggregation: "mean"
+    unit: "ms"
+
+  - hk_type: "HKQuantityTypeIdentifierVO2Max"
+    field: "vo2_max"
+    aggregation: "mean"
+    unit: "ml/kg/min"
+
+  - hk_type: "HKQuantityTypeIdentifierBodyFatPercentage"
+    field: "body_fat_pct"
+    aggregation: "first"
+    unit: "%"
+
+  - hk_type: "HKQuantityTypeIdentifierLeanBodyMass"
+    field: "muscle_mass_kg"
+    aggregation: "first"
+    unit: "kg"
+
+# 活动汇总映射
+activity_summary_mappings:
+  - field: "exercise_minutes"
+    source: "appleExerciseTime"
+    unit: "min"
+
+  - field: "stand_hours"
+    source: "appleStandHours"
+    unit: "count"
+
+  - field: "active_energy_kcal"
+    source: "activeEnergyBurned"
+    unit: "kcal"
+
+# 运动类型映射
+workout_type_mappings:
+  - hk_type: "HKWorkoutActivityTypeRunning"
+    name: "Running"
+
+  - hk_type: "HKWorkoutActivityTypeWalking"
+    name: "Walking"
+
+  - hk_type: "HKWorkoutActivityTypeCycling"
+    name: "Cycling"
+
+  - hk_type: "HKWorkoutActivityTypeSwimming"
+    name: "Swimming"
+
+  - hk_type: "HKWorkoutActivityTypeHiking"
+    name: "Hiking"
+
+  - hk_type: "HKWorkoutActivityTypeYoga"
+    name: "Yoga"
+
+  - hk_type: "HKWorkoutActivityTypeFitnessWalking"
+    name: "Fitness Walking"
+
+  - hk_type: "HKWorkoutActivityTypeTraditionalStrengthTraining"
+    name: "Strength Training"
+
+  - hk_type: "HKWorkoutActivityTypeElliptical"
+    name: "Elliptical"
+
+  - hk_type: "HKWorkoutActivityTypeRowing"
+    name: "Rowing"
+
+# 睡眠分析类型
+sleep_analysis_types:
+  - "HKCategoryTypeIdentifierSleepAnalysis"
+
+# 睡眠状态映射
+sleep_state_mappings:
+  0: "awake"      # 清醒
+  1: "asleep"     # 入睡
+  2: "in_bed"     # 在床
+
+# 输出文件配置
+output_files:
+  daily_health_summary:
+    filename: "daily_health_summary.csv"
+    fields:
+      - "date"
+      - "steps"
+      - "active_energy_kcal"
+      - "basal_energy_kcal"
+      - "distance_km"
+      - "exercise_minutes"
+      - "stand_hours"
+      - "body_mass_kg"
+      - "body_fat_pct"
+      - "muscle_mass_kg"
+      - "resting_hr_bpm"
+      - "hrv_ms"
+      - "vo2_max"
+
+  weekly_health_summary:
+    filename: "weekly_health_summary.csv"
+    fields:
+      - "week_start"
+      - "steps_total"
+      - "steps_daily_avg"
+      - "active_energy_kcal_total"
+      - "active_energy_kcal_daily_avg"
+      - "basal_energy_kcal_total"
+      - "distance_km_total"
+      - "distance_daily_avg"
+      - "exercise_minutes_total"
+      - "stand_hours_total"
+      - "body_mass_kg_avg"
+      - "resting_hr_bpm_avg"
+      - "hrv_ms_avg"
+      - "vo2_max_avg"
+      - "days_in_week"
+
+  workout_records:
+    filename: "workout_records.csv"
+    fields:
+      - "date"
+      - "workout_type"
+      - "duration_minutes"
+      - "distance_km"
+      - "energy_kcal"
+      - "heart_rate_avg"
+      - "heart_rate_max"
+      - "start_time"
+
+  sleep_summary:
+    filename: "sleep_summary.csv"
+    fields:
+      - "date"
+      - "bed_time"
+      - "wake_time"
+      - "in_bed_minutes"
+      - "asleep_minutes"
+      - "deep_sleep_minutes"
+      - "awake_minutes"
+      - "sleep_efficiency"
+
+# 数据质量配置
+data_quality:
+  # 晨起体重时间窗口
+  morning_weight_hours:
+    start: 6
+    end: 10
+
+  # 睡眠周期合并时间窗口（分钟）
+  sleep_period_gap_minutes: 60
+
+  # 跨天睡眠截止时间（小时）
+  sleep_day_boundary_hour: 12  # 中午12点后归属到第二天
+
+# 测试模式配置
+test_mode:
+  # 测试模式处理天数
+  test_days: 14
+
+  # 测试模式输出目录
+  test_output_dir: "output_test"

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<HealthData locale="zh_CN">
+    <ExportDate value="导出日期" startDate="2024-05-21 08:00:00 +0800"/>
+
+    <!-- 步数记录 -->
+    <Record type="HKQuantityTypeIdentifierStepCount" unit="count" value="5000"
+            startDate="2024-05-20 08:00:00 +0800" endDate="2024-05-20 09:00:00 +0800"
+            sourceName="iPhone" device="&lt;Watch1,2&gt;" creationDate="2024-05-20 09:00:00 +0800"/>
+
+    <Record type="HKQuantityTypeIdentifierStepCount" unit="count" value="3000"
+            startDate="2024-05-20 14:00:00 +0800" endDate="2024-05-20 15:00:00 +0800"
+            sourceName="iPhone" device="&lt;Watch1,2&gt;" creationDate="2024-05-20 15:00:00 +0800"/>
+
+    <!-- 体重记录 -->
+    <Record type="HKQuantityTypeIdentifierBodyMass" unit="kg" value="70.5"
+            startDate="2024-05-20 07:30:00 +0800" endDate="2024-05-20 07:30:00 +0800"
+            sourceName="Health" creationDate="2024-05-20 07:30:00 +0800"/>
+
+    <Record type="HKQuantityTypeIdentifierBodyMass" unit="kg" value="71.0"
+            startDate="2024-05-20 14:00:00 +0800" endDate="2024-05-20 14:00:00 +0800"
+            sourceName="Health" creationDate="2024-05-20 14:00:00 +0800"/>
+
+    <!-- 体脂率记录（小数形式 0.281 = 28.1%） -->
+    <Record type="HKQuantityTypeIdentifierBodyFatPercentage" unit="%" value="0.281"
+            startDate="2024-05-20 07:30:00 +0800" endDate="2024-05-20 07:30:00 +0800"
+            sourceName="Zepp Life" creationDate="2024-05-20 07:30:00 +0800"/>
+
+    <!-- 去脂体重记录 -->
+    <Record type="HKQuantityTypeIdentifierLeanBodyMass" unit="kg" value="60.9"
+            startDate="2024-05-20 07:30:00 +0800" endDate="2024-05-20 07:30:00 +0800"
+            sourceName="Zepp Life" creationDate="2024-05-20 07:30:00 +0800"/>
+
+    <!-- 能量消耗 -->
+    <Record type="HKQuantityTypeIdentifierActiveEnergyBurned" unit="kcal" value="300"
+            startDate="2024-05-20 08:00:00 +0800" endDate="2024-05-20 09:00:00 +0800"
+            sourceName="Watch" creationDate="2024-05-20 09:00:00 +0800"/>
+
+    <Record type="HKQuantityTypeIdentifierBasalEnergyBurned" unit="kcal" value="1200"
+            startDate="2024-05-20 00:00:00 +0800" endDate="2024-05-20 23:59:59 +0800"
+            sourceName="Health" creationDate="2024-05-20 23:59:59 +0800"/>
+
+    <!-- 心率 -->
+    <Record type="HKQuantityTypeIdentifierRestingHeartRate" unit="count/min" value="62"
+            startDate="2024-05-20 07:00:00 +0800" endDate="2024-05-20 07:00:00 +0800"
+            sourceName="Watch" creationDate="2024-05-20 07:00:00 +0800"/>
+
+    <Record type="HKQuantityTypeIdentifierRestingHeartRate" unit="count/min" value="65"
+            startDate="2024-05-20 08:00:00 +0800" endDate="2024-05-20 08:00:00 +0800"
+            sourceName="Watch" creationDate="2024-05-20 08:00:00 +0800"/>
+
+    <!-- 第二天的数据 -->
+    <Record type="HKQuantityTypeIdentifierStepCount" unit="count" value="8000"
+            startDate="2024-05-21 08:00:00 +0800" endDate="2024-05-21 09:00:00 +0800"
+            sourceName="iPhone" device="&lt;Watch1,2&gt;" creationDate="2024-05-21 09:00:00 +0800"/>
+
+    <Record type="HKQuantityTypeIdentifierBodyMass" unit="kg" value="70.3"
+            startDate="2024-05-21 08:00:00 +0800" endDate="2024-05-21 08:00:00 +0800"
+            sourceName="Health" creationDate="2024-05-21 08:00:00 +0800"/>
+
+    <Record type="HKQuantityTypeIdentifierBodyFatPercentage" unit="%" value="0.279"
+            startDate="2024-05-21 08:00:00 +0800" endDate="2024-05-21 08:00:00 +0800"
+            sourceName="Zepp Life" creationDate="2024-05-21 08:00:00 +0800"/>
+
+    <Record type="HKQuantityTypeIdentifierLeanBodyMass" unit="kg" value="61.2"
+            startDate="2024-05-21 08:00:00 +0800" endDate="2024-05-21 08:00:00 +0800"
+            sourceName="Zepp Life" creationDate="2024-05-21 08:00:00 +0800"/>
+
+    <!-- 活动汇总 -->
+    <ActivitySummary dateComponents="2024-05-20"
+                     activeEnergyBurned="450" appleExerciseTime="1800" appleStandHours="12"/>
+
+    <ActivitySummary dateComponents="2024-05-21"
+                     activeEnergyBurned="500" appleExerciseTime="2100" appleStandHours="11"/>
+
+    <!-- 运动记录（含心率统计子元素） -->
+    <Workout workoutActivityType="HKWorkoutActivityTypeRunning" duration="1800"
+             totalDistance="3000" totalEnergyBurned="250"
+             startDate="2024-05-20 06:00:00 +0800" endDate="2024-05-20 06:30:00 +0800"
+             sourceName="Watch" device="&lt;Watch1,2&gt;" creationDate="2024-05-20 06:30:00 +0800">
+        <WorkoutStatistics type="HKQuantityTypeIdentifierHeartRate" startDate="2024-05-20 06:00:00 +0800" endDate="2024-05-20 06:30:00 +0800" average="145.5" minimum="120" maximum="175" unit="count/min"/>
+        <WorkoutStatistics type="HKQuantityTypeIdentifierActiveEnergyBurned" startDate="2024-05-20 06:00:00 +0800" endDate="2024-05-20 06:30:00 +0800" sum="250" unit="kcal"/>
+    </Workout>
+
+    <Workout workoutActivityType="HKWorkoutActivityTypeWalking" duration="3600"
+             totalDistance="4000" totalEnergyBurned="200"
+             startDate="2024-05-21 07:00:00 +0800" endDate="2024-05-21 08:00:00 +0800"
+             sourceName="Watch" device="&lt;Watch1,2&gt;" creationDate="2024-05-21 08:00:00 +0800">
+        <WorkoutStatistics type="HKQuantityTypeIdentifierHeartRate" startDate="2024-05-21 07:00:00 +0800" endDate="2024-05-21 08:00:00 +0800" average="96" minimum="78" maximum="118" unit="count/min"/>
+    </Workout>
+
+    <!--
+      睡眠记录（2024-05-20 醒来）
+      包含：InBed → Deep → Core → Awake → Core
+      同时包含两条完全重复的 InBed 记录（模拟 Sleepace 去重测试）
+    -->
+    <Record type="HKCategoryTypeIdentifierSleepAnalysis" value="HKCategoryValueSleepAnalysisInBed"
+            startDate="2024-05-19 23:00:00 +0800" endDate="2024-05-19 23:30:00 +0800"
+            sourceName="Watch" creationDate="2024-05-19 23:30:00 +0800"/>
+
+    <!-- 重复记录（同 start/end/state，不同 creationDate） -->
+    <Record type="HKCategoryTypeIdentifierSleepAnalysis" value="HKCategoryValueSleepAnalysisInBed"
+            startDate="2024-05-19 23:00:00 +0800" endDate="2024-05-19 23:30:00 +0800"
+            sourceName="Sleepace" creationDate="2024-05-20 01:00:00 +0800"/>
+
+    <Record type="HKCategoryTypeIdentifierSleepAnalysis" value="HKCategoryValueSleepAnalysisAsleepDeep"
+            startDate="2024-05-19 23:30:00 +0800" endDate="2024-05-20 01:00:00 +0800"
+            sourceName="Watch" creationDate="2024-05-20 01:00:00 +0800"/>
+
+    <Record type="HKCategoryTypeIdentifierSleepAnalysis" value="HKCategoryValueSleepAnalysisAsleepCore"
+            startDate="2024-05-20 01:00:00 +0800" endDate="2024-05-20 05:30:00 +0800"
+            sourceName="Watch" creationDate="2024-05-20 05:30:00 +0800"/>
+
+    <Record type="HKCategoryTypeIdentifierSleepAnalysis" value="HKCategoryValueSleepAnalysisAwake"
+            startDate="2024-05-20 05:30:00 +0800" endDate="2024-05-20 05:45:00 +0800"
+            sourceName="Watch" creationDate="2024-05-20 05:45:00 +0800"/>
+
+    <Record type="HKCategoryTypeIdentifierSleepAnalysis" value="HKCategoryValueSleepAnalysisAsleepCore"
+            startDate="2024-05-20 05:45:00 +0800" endDate="2024-05-20 06:30:00 +0800"
+            sourceName="Watch" creationDate="2024-05-20 06:30:00 +0800"/>
+</HealthData>
